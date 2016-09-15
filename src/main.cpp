@@ -101,7 +101,6 @@ void Cell::calculate_bulge_target(void){
         bulge_distance += sqrt(radicand) + dotN;
     }
     bulge_distance /= connections.size();
-    cout << ofToString(bulge_distance) << endl;
     bulge_target = position + (cell_normal * bulge_distance);
 }
 
@@ -119,26 +118,41 @@ Cell* Cell::find_next(Cell* current, Cell* previous){
             return d;
         }
     }
-    
+    throw 0;
     return NULL;
+}
+
+vector<Cell*> Cell::get_ordered_neighbors(void){
+    //gotta start somewhere.. hb randomly
+    vector<Cell*> ord_neigh;
+    ord_neigh.push_back(connections[(int) ofRandom(connections.size())]);
+    
+    Cell* current;
+    Cell* previous = this;
+    
+    // march through the loop
+    do {
+        current = find_next(ord_neigh.back(), previous);
+        previous = ord_neigh.back();
+        ord_neigh.push_back(current);
+        
+    } while (current != ord_neigh.front());
+    
+    
+    return ord_neigh;
 }
 
 void Cell::calculate_normal(void){
 
     ofPoint temp = ofPoint(0,0,0);
     
-    Cell * current = connections[0];
-    Cell * previous;
+    vector<Cell*> loop = get_ordered_neighbors();
     
-    // initialize previous
-    for (Cell* d : *connections[0]->get_connections()){
-        if ((d != this) and (find(connections.begin(), connections.end(), d) != connections.end())){
-            previous = d;
-            break;
-        }
-    }
+    Cell * current = loop.front();
+    Cell * previous = loop.back();
     
-    for (int i = 0; i < connections.size(); i++){
+    
+    for (int i = 0; i <loop.size(); i++){
         // add the normalized cross product
         ofPoint v1 = (current->get_position() - position);
         ofPoint v2 = (previous->get_position() - position);
@@ -147,13 +161,10 @@ void Cell::calculate_normal(void){
         v1.normalize();
         temp += v1;
         
-        // now find the next point
-        Cell* c_temp = find_next(current, previous);
-        if (c_temp == NULL) break;
-        
-        previous = current;
-        current = c_temp;
-        
+        if (i + 1 < loop.size()){
+            previous = loop[i];
+            current = loop[i+1];
+        }
     }
     temp.normalize();
     
@@ -171,35 +182,37 @@ void Cell::calculate_normal(void){
     cell_normal = temp;
 }
 
-Cell* Cell::split(void){
-    reset_food();
-    Cell* bb = new Cell(position, age, cell_normal);
-    
-    // First calculate the anchors (farthest apart nodes)
-    Cell* anchor1 = connections[0];
-    Cell* anchor2 = connections[0];
-    
+Cell* Cell::compute_anchor(Cell* anchor1){
+    Cell* anchor2;
     float max_dist = 0;
-    for (int i = 0; i < connections.size(); i++){
-        for (int j = i; j < connections.size(); j++){
-            float cur_dist =connections[i]->get_position().distance(connections[j]->get_position());
-            
-            if (cur_dist > max_dist){
-                anchor1 = connections[i];
-                anchor2 = connections[j];
-                max_dist = cur_dist;
-            }
+    for (Cell* c : connections){
+        float cur_dist = c->get_position().distance(anchor1->get_position());
+        if (cur_dist > max_dist){
+            anchor2 = c;
+            max_dist = cur_dist;
         }
     }
+    return anchor2;
+}
+
+Cell* Cell::split(void){
+    reset_food();
+    vector<Cell*> ord_neigh = get_ordered_neighbors();
+    
+    Cell* bb = new Cell(position, age, cell_normal);
+    
+    Cell* anchor1 =ord_neigh[0];
+    Cell* anchor2 =ord_neigh[ord_neigh.size()/2];
     
     
-    // now traverse from one anchor to another, removing springs from this and adding to bb as we go
-    Cell* current = find_next(anchor1, anchor2);
+    // now traverse from one anchor to another
+    Cell* current= find_next(anchor1, anchor1);
     Cell* previous = anchor1;
     
+    vector<Cell*> loop;
     while (current != anchor2){
-        // throw error if try to connect to a node that was already visited
-        if (find(bb->connections.begin(), bb->connections.end(), current) != bb->connections.end()) throw 0;
+        loop.push_back(current);
+        
         bb->add_spring(current);
         current->add_spring(bb);
         // now find the next point
@@ -217,10 +230,12 @@ Cell* Cell::split(void){
     
     bb->add_spring(this);
     this->add_spring(bb);
+    
     bb->add_spring(anchor1);
     bb->add_spring(anchor2);
     anchor1->add_spring(bb);
     anchor2->add_spring(bb);
+    
     return bb;
 }
 
@@ -240,8 +255,20 @@ void Cell::update(void){
 
 void Cell::draw_springs(void){
     ofSetColor(0);
+    ofSetLineWidth(1);
     for (Cell * c : connections){
         ofDrawLine(position, c->position);
+    }
+}
+
+void Cell::draw_loop(void){
+    vector<Cell*> loop = get_ordered_neighbors();
+    ofSetColor(255, 0, 0);
+    ofSetLineWidth(3);
+    for (int i = 0; i < loop.size(); i++){
+        ofPoint p1 = loop[i]->get_position();
+        ofPoint p2 = loop[(i+1)%loop.size()]->get_position();
+        ofDrawLine(p1, p1+((p2-p1)/(i+1)));
     }
 }
 
@@ -256,7 +283,9 @@ void Cell::draw_normal(void){
 }
 
 void Cell::draw_cell(float radius){
-    ofSetColor(col);
+//    ofSetColor(col);
+    ofSetColor(ofMap(food, 0, 50, 0, 255));
+    if (dup) ofSetColor(255,0,0);
     ofSetLineWidth(2);
     ofDrawIcoSphere(position, radius);
 }
@@ -268,19 +297,20 @@ ofPoint Cell::get_position(void){
 
 //========================================================================
 Simulation::Simulation(void){
-   /*
+  /*
     Cell * c1 = new Cell(ofPoint(0,0,0));
     Cell * c2 = new Cell(ofPoint(10,0,0));
+    Cell * c3 = new Cell(ofPoint(5, 10, 0));
+    Cell * c4 = new Cell(ofPoint(5,5,5));
     
-    c1->add_spring(c2);
-    c2->add_spring(c1);
     
     cells.push_back(c1);
     cells.push_back(c2);
+    cells.push_back(c3);
+    cells.push_back(c4);
     */
-    
    // to do: generalize
-    init_sphere_points(12, 10);
+    init_sphere_points(8, 10);
     init_springs(15);
 }
 
@@ -327,7 +357,7 @@ void Simulation::init_springs(float radius){
 void Simulation::update(){
     bool split_this_update = false;
     for (Cell * c : cells){
-//        c->add_food(ofRandom(1));
+        c->add_food(ofRandom(1));
         c->update();
         if (c->get_food_amount() > split_threshold){
             split_this_update = true;
@@ -353,8 +383,8 @@ void Simulation::update(){
 
 void Simulation::render(void){
     render_springs();
-    render_normals();
-    render_spheres(.3);
+    //render_normals();
+    render_spheres(3);
 }
 
 void Simulation::render_springs(void){
@@ -366,7 +396,9 @@ void Simulation::render_springs(void){
 void Simulation::render_spheres(float radius){
     for (Cell * c : cells){
         c->draw_cell(radius);
-        c->draw_spring_target(radius/3);
+        
+        //for testing
+        //c->draw_spring_target(radius/3);
     }
 }
 

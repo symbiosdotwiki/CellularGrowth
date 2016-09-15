@@ -31,10 +31,13 @@ public:
     Cell* split(void);
     void update(void);
     
+    bool dup = false;
+    
     void draw_springs(void);
     void draw_spring_target(float radius);
     void draw_normal(void);
     void draw_cell(float radius);
+    void draw_loop(void);
     
 private:
     ofPoint position, original_pos;
@@ -45,21 +48,23 @@ private:
     float food = 0;
     float age;
     
-    float link_rest_length = 8;
+    float link_rest_length = 10;
     float bulge_distance;
     
-    float spring_factor = 0.1;
-    float planar_factor = 0.1;
-    float bulge_factor = 0.1;
+    float spring_factor = 0.00;
+    float planar_factor = 0.01;
+    float bulge_factor = 0.01;
     
     
     Cell* find_next(Cell* current, Cell* previous);
     void remove_spring(Cell* to_remove);
+    Cell* compute_anchor(Cell* anchor1);
     void calculate_spring_target(void);
     void calculate_planar_target(void);
     void calculate_bulge_target(void);
     
     void calculate_normal(void);
+    vector<Cell*> get_ordered_neighbors(void);
     
 };
 
@@ -83,7 +88,7 @@ private:
     void render_springs(void);
     void render_normals(void);
     
-    float split_threshold = 10;
+    float split_threshold = 50;
 };
 
 #endif /* main_h */

@@ -19,15 +19,15 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
     sim->update();
-    
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    ofSetWindowTitle("FPS: " + ofToString(ofGetFrameRate()));
+    ofSetWindowTitle("FPS: " + ofToString(ofGetFrameRate()) +
+                     " Population: " + ofToString(sim->get_population()));
     
-    cout << "Frame Number: " + ofToString(ofGetFrameNum()) << endl;
-    cout << ofToString(sim->get_population()) << endl;
+//    cout << "Frame Number: " + ofToString(ofGetFrameNum()) << endl;
+//    cout << ofToString(sim->get_population()) << endl;
     cam.begin();
     light->enable();
     sim->render();
@@ -37,7 +37,8 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-    sim->update();
+    if (key=='u') sim->update();
+    if (key==' ') sim = new Simulation();
 
 }
 
@@ -58,7 +59,7 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-    sim->update();
+    
 }
 
 //--------------------------------------------------------------
