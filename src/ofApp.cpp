@@ -4,7 +4,7 @@
 void ofApp::setup(){
     ofSetFrameRate(60);
     ofEnableDepthTest();
-    
+    ofBackgroundGradient(ofColor::white, ofColor::lightGray);
     cam.setDistance(100);
     
     sim = new Simulation();
@@ -25,6 +25,7 @@ void ofApp::update(){
 void ofApp::draw(){
     ofSetWindowTitle("FPS: " + ofToString(ofGetFrameRate()) +
                      " Population: " + ofToString(sim->get_population()));
+    
     
 //    cout << "Frame Number: " + ofToString(ofGetFrameNum()) << endl;
 //    cout << ofToString(sim->get_population()) << endl;

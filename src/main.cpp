@@ -25,7 +25,7 @@ Cell::Cell(ofPoint _position){
     position = _position;
     original_pos = _position;
     age = 0;
-    col = ofColor::fromHsb(ofRandom(255), 255, 255, 255);
+//    col = ofColor::fromHsb(ofRandom(255), 255, 255, 255);
 }
 
 Cell::Cell(ofPoint _position, int _age, ofPoint _cell_normal){
@@ -34,7 +34,11 @@ Cell::Cell(ofPoint _position, int _age, ofPoint _cell_normal){
     original_pos = _position;
     age = _age;
     cell_normal = _cell_normal;
-    col = ofColor::fromHsb(ofRandom(255), 255, 255, 255);
+    //col = ofColor::fromHsb(ofRandom(255), 255, 255, 255);
+}
+
+bool Cell::is_connected(Cell* c){
+    return find(connections.begin(), connections.end(), c) != connections.end();
 }
 
 void Cell::add_spring(Cell * c){
@@ -51,6 +55,10 @@ void Cell::reset_food(void){
 
 float Cell::get_food_amount(void){
     return food;
+}
+
+float Cell::get_roi(void){
+    return roi_squared;
 }
 
 vector<Cell*>* Cell::get_connections(void){
@@ -104,6 +112,18 @@ void Cell::calculate_bulge_target(void){
     bulge_target = position + (cell_normal * bulge_distance);
 }
 
+
+void Cell::calculate_collision_offset(vector<Cell*> collision_list){
+    collision_offset = ofPoint(0,0,0);
+    ofPoint temp;
+    for (Cell* c : collision_list){
+        temp = (position-c->get_position()).normalize();
+        temp *= (roi_squared - (position - get_position()).lengthSquared())/roi_squared;
+        collision_offset += temp;
+    }
+    collision_offset *= repulsion_strength;
+}
+
 void Cell::remove_spring(Cell* to_remove){
     connections.erase(remove(connections.begin(), connections.end(), to_remove), connections.end());
 }
@@ -120,6 +140,16 @@ Cell* Cell::find_next(Cell* current, Cell* previous){
     }
     throw 0;
     return NULL;
+}
+
+float Cell::get_average_link_len(void){
+    float avg = 0;
+    for (Cell* c : connections){
+        avg += position.distance(c->get_position());
+    }
+    avg /= connections.size();
+    cout << ofToString(avg) <<endl;
+    return avg;
 }
 
 vector<Cell*> Cell::get_ordered_neighbors(void){
@@ -236,21 +266,49 @@ Cell* Cell::split(void){
     anchor1->add_spring(bb);
     anchor2->add_spring(bb);
     
+    // figure better way to set inital point positions...
+    // How to determine a side?
+    // Maybe average connections locations and move half way to that?
+    
+    ofPoint average1 = ofPoint(0,0,0);
+    for (Cell* c : connections){
+        average1 += c->get_position();
+    }
+    average1 /= connections.size();
+    
+    ofPoint average2 = ofPoint(0,0,0);
+    for (Cell* c : *bb->get_connections()){
+        average2 += c->get_position();
+    }
+    average2 /= bb->get_connections()->size();
+    
+    next_position= (position + average1)/2.0;
+                 
+    bb->next_position = ((bb->get_position() + average2) /2.0);
+    
     return bb;
 }
 
-void Cell::update(void){
+void Cell::update(vector<Cell*> collision_list){
     calculate_normal();
-    
+   
     calculate_spring_target();
     calculate_planar_target();
     calculate_bulge_target();
+    calculate_collision_offset(collision_list);
     
-    position += spring_factor * (spring_target - position);
-    position += planar_factor * (planar_target - position);
-    position += bulge_factor * (bulge_target - position);
+    next_position = position;
+    next_position += spring_factor * (spring_target - position);
+    next_position += planar_factor * (planar_target - position);
+    next_position += bulge_factor * (bulge_target - position);
+    next_position += collision_offset;
     
     age++;
+    
+}
+
+void Cell::move(void){
+    position = next_position;
 }
 
 void Cell::draw_springs(void){
@@ -278,14 +336,14 @@ void Cell::draw_spring_target(float radius){
 }
 
 void Cell::draw_normal(void){
-    ofSetColor(255,255,0);
-    ofDrawLine(position, position + bulge_distance*cell_normal);
+    ofSetColor(ofColor::black);
+    ofSetLineWidth(2);
+    ofDrawLine(position, position + cell_normal);
 }
 
 void Cell::draw_cell(float radius){
-//    ofSetColor(col);
-    ofSetColor(ofMap(food, 0, 50, 0, 255));
-    if (dup) ofSetColor(255,0,0);
+    ofSetColor(col);
+//    ofSetColor(ofMap(food, 0, 50, 0, 255));
     ofSetLineWidth(2);
     ofDrawIcoSphere(position, radius);
 }
@@ -294,29 +352,33 @@ ofPoint Cell::get_position(void){
     return position;
 }
 
+void Cell::set_position(ofPoint new_pos){
+    position = new_pos;
+}
 
 //========================================================================
 Simulation::Simulation(void){
-  /*
-    Cell * c1 = new Cell(ofPoint(0,0,0));
-    Cell * c2 = new Cell(ofPoint(10,0,0));
-    Cell * c3 = new Cell(ofPoint(5, 10, 0));
-    Cell * c4 = new Cell(ofPoint(5,5,5));
-    
-    
-    cells.push_back(c1);
-    cells.push_back(c2);
-    cells.push_back(c3);
-    cells.push_back(c4);
-    */
    // to do: generalize
+    /*
     init_sphere_points(8, 10);
+    init_springs(15);
+    */
+   
+    /*
+    init_sphere_points(32, 10);
+    init_springs(9);
+    */
+    
+    vector<ofPoint> icos_vert = icosa_vertices();
+    for (ofPoint p : icos_vert){
+        Cell *c = new Cell(p*10);
+        cells.push_back(c);
+    }
     init_springs(15);
 }
 
 void Simulation::init_sphere_points(float n, float r){
     // distribute n cells of a sphere of radius r
-    
     int n_count = 0;
     
     float a = 4*PI/n;
@@ -354,15 +416,32 @@ void Simulation::init_springs(float radius){
     }
 }
 
+vector<Cell*> Simulation::find_collisions(Cell * c){
+    vector<Cell*> colliderz;
+    float roi_squared = c->get_roi();
+    for (Cell * other : cells){
+        if ((not c->is_connected(other)) and (c != other)
+            and (c->get_position().squareDistance(other->get_position()) < roi_squared)){
+            colliderz.push_back(other);
+        }
+
+    }
+    return colliderz;
+}
+
 void Simulation::update(){
     bool split_this_update = false;
     for (Cell * c : cells){
+        vector<Cell*> collisions = find_collisions(c);
+        c->update(collisions);
+        
         c->add_food(ofRandom(1));
-        c->update();
         if (c->get_food_amount() > split_threshold){
             split_this_update = true;
         }
     }
+    
+
     
     if (split_this_update){
         vector<Cell *> new_cells;
@@ -373,18 +452,34 @@ void Simulation::update(){
                 new_cells.push_back(bb);
             }
         }
-    
         cells.insert(cells.end(), new_cells.begin(), new_cells.end());
     }
-
     
-    // vector1.insert( vector1.end(), vector2.begin(), vector2.end() );
+    for (Cell* c: cells){
+        c->move();
+    }
+    
+//    average_positions();
+}
+
+void Simulation::average_positions(void){
+    ofPoint average = ofPoint(0,0,0);
+    for (Cell* c: cells){
+        average += c->get_position();
+    }
+    
+    average /= cells.size();
+    
+    for (Cell* c : cells){
+        c->set_position(c->get_position()-average);
+    }
 }
 
 void Simulation::render(void){
     render_springs();
     //render_normals();
-    render_spheres(3);
+    render_spheres(1);
+//    render_normals();
 }
 
 void Simulation::render_springs(void){
@@ -410,4 +505,39 @@ void Simulation::render_normals(void){
 
 int Simulation::get_population(void){
     return cells.size();
+}
+
+
+
+//========================================================================
+// Helper functions to create a sphere
+vector<ofPoint> icosa_vertices(void){
+    vector<ofPoint> vertices(12);
+    
+    double theta = 26.56505117707799 * PI / 180.0;
+    
+    double stheta = sin(theta);
+    double ctheta = cos(theta);
+    
+    vertices[0] = ofPoint(0,0,-1);
+    
+    // the lower pentagon
+    double phi = PI / 5.0;
+    for (int i = 1; i < 6; ++i) {
+        vertices[i] = ofPoint(ctheta * cos(phi), ctheta * sin(phi), -stheta);
+        
+        phi += 2.0 * PI / 5.0;
+    }
+    
+    // the upper pentagon
+    phi = 0.0;
+    for (int i = 6; i < 11; ++i) {
+        vertices[i] = ofPoint(ctheta * cos(phi), ctheta * sin(phi), stheta);
+        
+        phi += 2.0 * PI / 5.0;
+    }
+    
+    vertices[11] =ofPoint(0,0,1); // the upper vertex
+    
+    return vertices;
 }
