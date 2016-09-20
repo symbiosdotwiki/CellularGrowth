@@ -36,6 +36,7 @@ public:
     Cell* split(void);
     void update(vector<Cell*> collision_list);
     void move(void);
+    void print(void);
     
     bool dup = false;
     
@@ -56,14 +57,14 @@ private:
     float food = 0;
     float age;
     
-    float link_rest_length = 8;
+    float link_rest_length = 5;
     float bulge_distance;
-    float roi_squared = 2;
+    float roi_squared = 4;
     
-    float spring_factor = 0.001;
+    float spring_factor = 0.03;
     float planar_factor = 0.001;
-    float bulge_factor = 0.01;
-    float repulsion_strength = 0.02;
+    float bulge_factor = 0.08;
+    float repulsion_strength = 0.1;
     
     
     Cell* find_next(Cell* current, Cell* previous);
@@ -80,6 +81,25 @@ private:
     
 };
 
+class Grid{
+public:
+    Grid(int resolution, float _x_length, float _y_length, float _z_length);
+    ~Grid(void);
+    
+    bool in_bounds(int x, int y, int z);
+    int get_index(int x, int y, int z);
+    int get_box(ofPoint p);
+    vector<Cell*> get_collisions(Cell* c);
+    void add_cell(Cell* c);
+    void update_positions(void);
+    void draw_bounding_box(void);
+    
+private:
+    vector<vector<Cell*>> grid_cells;
+    float x_length, y_length, z_length;
+    int resolution;
+};
+
 class Simulation{
 public:
     
@@ -93,6 +113,7 @@ public:
     
 private:
     vector<Cell*> cells;
+
     
     void init_sphere_points(float n, float r);
     void init_springs(float);
@@ -102,7 +123,7 @@ private:
     void average_positions(void);
     vector<Cell*> find_collisions(Cell* c);
     
-    float split_threshold = 80;
+    float split_threshold = 100;
 };
 
 vector<ofPoint> icosa_vertices(void);

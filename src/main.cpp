@@ -105,7 +105,8 @@ void Cell::calculate_bulge_target(void){
     for (Cell* c : connections){
         ofPoint L = c->get_position() - position;
         float dotN = (L - position).dot(cell_normal);
-        float radicand = pow(link_rest_length, 2) - pow(L.length(), 2) + pow(dotN, 2);
+        float radicand = abs(pow(link_rest_length, 2) - pow(L.length(), 2) + pow(dotN, 2));
+
         bulge_distance += sqrt(radicand) + dotN;
     }
     bulge_distance /= connections.size();
@@ -311,6 +312,14 @@ void Cell::move(void){
     position = next_position;
 }
 
+void Cell::print(void){
+    cout << "Current Cell (Age) " + ofToString(age) << endl;
+    cout << "Spring Delta: " + ofToString(position.distance(spring_target)) << endl;
+    cout << "Planar Delta: " + ofToString(position.distance(planar_target)) << endl;
+    cout << "Bulge Delta: " + ofToString(position.distance(bulge_target)) << endl;
+    cout << "Collision Delta: " + ofToString(collision_offset.length()) + "\n" << endl;
+}
+
 void Cell::draw_springs(void){
     ofSetColor(0);
     ofSetLineWidth(1);
@@ -356,6 +365,56 @@ void Cell::set_position(ofPoint new_pos){
     position = new_pos;
 }
 
+
+//========================================================================
+Grid::Grid(int _resolution, float _x_length, float _y_length, float _z_length){
+    resolution = _resolution;
+    x_length = _x_length;
+    y_length = _y_length;
+    z_length = _z_length;
+    
+    grid_cells.reserve(pow(resolution, 3));
+}
+
+void Grid::add_cell(Cell* c){
+    grid_cells[get_box(c->get_position())].push_back(c);
+}
+
+bool Grid::in_bounds(int x, int y, int z){
+    return ((x>0) and (y>0) and (z>0)
+            and (x < grid_cells.size())
+            and (y < grid_cells.size())
+            and (z < grid_cells.size()));
+}
+
+int Grid::get_index(int x, int y, int z){
+    if (not in_bounds(x,y,z)) return -1;
+    return (resolution*resolution*z) + (resolution*y) + x;
+}
+
+int Grid::get_box(ofPoint p){
+    p += ofPoint(x_length/2.0, y_length/2.0, z_length/2.0);
+    
+    int x = floor(p.x);
+    int y = floor(p.y);
+    int z = floor(p.z);
+    
+    return get_index(x,y,z);
+}
+
+vector<Cell*> Grid::get_collisions(Cell* c){
+    ;; //TODO
+}
+
+void Grid::update_positions(void){
+    ;; //TODO
+}
+
+
+void Grid::draw_bounding_box(void){
+    ;; //TODO
+}
+
 //========================================================================
 Simulation::Simulation(void){
    // to do: generalize
@@ -368,6 +427,8 @@ Simulation::Simulation(void){
     init_sphere_points(32, 10);
     init_springs(9);
     */
+    
+    cells.reserve(10000);
     
     vector<ofPoint> icos_vert = icosa_vertices();
     for (ofPoint p : icos_vert){
@@ -431,11 +492,12 @@ vector<Cell*> Simulation::find_collisions(Cell * c){
 
 void Simulation::update(){
     bool split_this_update = false;
+    
     for (Cell * c : cells){
         vector<Cell*> collisions = find_collisions(c);
         c->update(collisions);
         
-        c->add_food(ofRandom(1));
+        c->add_food(ofRandom(.45));
         if (c->get_food_amount() > split_threshold){
             split_this_update = true;
         }
@@ -457,7 +519,10 @@ void Simulation::update(){
     
     for (Cell* c: cells){
         c->move();
+//        c->print();
     }
+    
+    
     
 //    average_positions();
 }
@@ -478,8 +543,8 @@ void Simulation::average_positions(void){
 void Simulation::render(void){
     render_springs();
     //render_normals();
-    render_spheres(1);
-//    render_normals();
+//    render_spheres(1);
+    render_normals();
 }
 
 void Simulation::render_springs(void){

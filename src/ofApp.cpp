@@ -32,6 +32,11 @@ void ofApp::draw(){
     cam.begin();
     light->enable();
     sim->render();
+    
+    ofNoFill();
+    
+    ofDrawBox(0, 0, 0, 10, 10, 10);
+    
     light->disable();
     cam.end();
 }
