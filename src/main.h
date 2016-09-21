@@ -34,6 +34,10 @@ public:
     vector<Cell*> connections;
     
     Cell* split(void);
+    
+    void set_values(float _link_rest_length, float _roi_squared,
+                    float _spring_factor, float _bulge_factor,
+                    float _planar_factor, float _repulsion_strength);
     void update(vector<Cell*> collision_list);
     void move(void);
     void print(void);
@@ -57,13 +61,13 @@ private:
     float food = 0;
     float age;
     
-    float link_rest_length = 5;
+    float link_rest_length = .24;
     float bulge_distance;
-    float roi_squared = 4;
+    float roi_squared = .25;
     
-    float spring_factor = 0.03;
-    float planar_factor = 0.001;
-    float bulge_factor = 0.08;
+    float spring_factor = 0.01;
+    float planar_factor = -0.005;
+    float bulge_factor = 0.01;
     float repulsion_strength = 0.1;
     
     
@@ -81,6 +85,7 @@ private:
     
 };
 
+
 class Grid{
 public:
     Grid(int resolution, float _x_length, float _y_length, float _z_length);
@@ -93,9 +98,17 @@ public:
     void add_cell(Cell* c);
     void update_positions(void);
     void draw_bounding_box(void);
+    vector<Cell*> iter(void);
+    void draw_boxes(void);
+    int size(void);
+    
+
     
 private:
     vector<vector<Cell*>> grid_cells;
+    vector<Cell*> cell_iter;
+    void remove_element(int index, Cell* c);
+    void get_coords(int index, int *x, int *y, int *z);
     float x_length, y_length, z_length;
     int resolution;
 };
@@ -107,26 +120,32 @@ public:
     ~Simulation(void);
     
     void render(void);
+    
+    void render_spheres(float radius = 3);
+    void render_springs(void);
+    void render_normals(void);
+    void render_bounding_box(void);
     void update(void);
     
     int get_population(void);
     
-private:
-    vector<Cell*> cells;
-
+    void set_values(float _link_rest_length, float _roi_squared,
+                    float _spring_factor, float _bulge_factor,
+                    float _planar_factor,float _repulsion_strength);
     
-    void init_sphere_points(float n, float r);
+private:
     void init_springs(float);
-    void render_spheres(float radius = 3);
-    void render_springs(void);
-    void render_normals(void);
+
     void average_positions(void);
     vector<Cell*> find_collisions(Cell* c);
+    float split_threshold = 10;
     
-    float split_threshold = 100;
+    Grid* g;
 };
 
-vector<ofPoint> icosa_vertices(void);
 
+// sphere creation
+vector<ofPoint> icosa_vertices(void);
+vector<ofPoint> init_sphere_points(float n, float r);
 
 #endif /* main_h */

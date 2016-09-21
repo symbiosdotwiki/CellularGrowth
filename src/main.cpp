@@ -143,13 +143,13 @@ Cell* Cell::find_next(Cell* current, Cell* previous){
     return NULL;
 }
 
+
 float Cell::get_average_link_len(void){
     float avg = 0;
     for (Cell* c : connections){
         avg += position.distance(c->get_position());
     }
     avg /= connections.size();
-    cout << ofToString(avg) <<endl;
     return avg;
 }
 
@@ -290,6 +290,15 @@ Cell* Cell::split(void){
     return bb;
 }
 
+void Cell::set_values(float _link_rest_length, float _roi_squared, float _spring_factor, float _bulge_factor, float _planar_factor, float _repulsion_strength){
+    link_rest_length = _link_rest_length;
+    roi_squared = _roi_squared;
+    spring_factor = _spring_factor;
+    bulge_factor = _bulge_factor;
+    repulsion_strength = _repulsion_strength;
+    planar_factor = _planar_factor;
+}
+
 void Cell::update(vector<Cell*> collision_list){
     calculate_normal();
    
@@ -321,7 +330,6 @@ void Cell::print(void){
 }
 
 void Cell::draw_springs(void){
-    ofSetColor(0);
     ofSetLineWidth(1);
     for (Cell * c : connections){
         ofDrawLine(position, c->position);
@@ -351,9 +359,7 @@ void Cell::draw_normal(void){
 }
 
 void Cell::draw_cell(float radius){
-    ofSetColor(col);
-//    ofSetColor(ofMap(food, 0, 50, 0, 255));
-    ofSetLineWidth(2);
+    ofFill();
     ofDrawIcoSphere(position, radius);
 }
 
@@ -373,13 +379,23 @@ Grid::Grid(int _resolution, float _x_length, float _y_length, float _z_length){
     y_length = _y_length;
     z_length = _z_length;
     
-    grid_cells.reserve(pow(resolution, 3));
+    grid_cells.resize(pow(resolution, 3));
 }
 
 void Grid::add_cell(Cell* c){
     grid_cells[get_box(c->get_position())].push_back(c);
+    cell_iter.push_back(c);
 }
 
+int Grid::size(void){
+    return cell_iter.size();
+}
+
+vector<Cell*> Grid::iter(void){
+    return cell_iter;
+}
+
+// wrong, fix this
 bool Grid::in_bounds(int x, int y, int z){
     return ((x>0) and (y>0) and (z>0)
             and (x < grid_cells.size())
@@ -388,88 +404,105 @@ bool Grid::in_bounds(int x, int y, int z){
 }
 
 int Grid::get_index(int x, int y, int z){
-    if (not in_bounds(x,y,z)) return -1;
+    if (not in_bounds(x,y,z)) return - 1;
     return (resolution*resolution*z) + (resolution*y) + x;
 }
 
 int Grid::get_box(ofPoint p){
     p += ofPoint(x_length/2.0, y_length/2.0, z_length/2.0);
     
-    int x = floor(p.x);
-    int y = floor(p.y);
-    int z = floor(p.z);
+    int x = (p.x * resolution) / x_length;
+    int y = (p.y * resolution) / y_length;
+    int z = (p.z * resolution) / z_length;
     
     return get_index(x,y,z);
 }
 
+void Grid::get_coords(int index, int * x, int * y, int * z){
+    int scale = (x_length / resolution);
+    (*x) = scale * (index % resolution);
+    (*y) = scale * (((index-(*x)) % (resolution*resolution)) / resolution);
+    (*z) = scale * ((index - (*x) - (*y)) / (resolution*resolution));
+}
+
 vector<Cell*> Grid::get_collisions(Cell* c){
-    ;; //TODO
-}
-
-void Grid::update_positions(void){
-    ;; //TODO
-}
-
-
-void Grid::draw_bounding_box(void){
-    ;; //TODO
-}
-
-//========================================================================
-Simulation::Simulation(void){
-   // to do: generalize
-    /*
-    init_sphere_points(8, 10);
-    init_springs(15);
-    */
-   
-    /*
-    init_sphere_points(32, 10);
-    init_springs(9);
-    */
+    int x, y, z, index;
+    index = get_box(c->get_position());
+    get_coords(index, &x, &y, &z);
+    float roi_squared = c->get_roi();
     
-    cells.reserve(10000);
+    vector<Cell*> neighbors;
     
-    vector<ofPoint> icos_vert = icosa_vertices();
-    for (ofPoint p : icos_vert){
-        Cell *c = new Cell(p*10);
-        cells.push_back(c);
+    for (int i = -1; i <= 1; i++){
+        for (int j = -1; j <= 1; j++){
+            for (int k = -1; k <= 1; k++){
+                for (Cell* other: grid_cells[get_index(x+i, y+j, z+k)]){
+                    if ((not c->is_connected(other)) and (c != other)
+                        and (c->get_position().squareDistance(other->get_position()) < roi_squared)){
+                        neighbors.push_back(other);
+                    }
+                }
+            }
+        }
     }
-    init_springs(15);
+    
+    return neighbors;
 }
 
-void Simulation::init_sphere_points(float n, float r){
-    // distribute n cells of a sphere of radius r
-    int n_count = 0;
-    
-    float a = 4*PI/n;
-    float d = sqrt(a);
-    
-    float mv = round(PI/d);
-    
-    
-    float dv = PI / mv;
-    float dp = a / dv;
-    
-    for (int m = 0; m < mv; m++){
-        float v = PI*(m+0.5) / mv;
-        float mp = round(2*PI*sin(v) / dp);
-        for (int j = 0; j < mp; j++){
-            float p = 2*PI*j / mp;
-            ofPoint point = ofPoint(r*sin(v)*cos(p),
-                                    r*sin(v)*sin(p),
-                                    r*cos(v));
-            Cell * c = new Cell(point);
-            cells.push_back(c);
-            n_count += 1;
+void Grid::remove_element(int index, Cell* c){
+    grid_cells[index].erase(remove(grid_cells[index].begin(), grid_cells[index].end(), c), grid_cells[index].end());
+}
+
+// can optimize, repeating looks
+void Grid::update_positions(void){
+    for (int i = 0; i < grid_cells.size(); i++){
+        for (Cell* c: grid_cells[i]){
+            int index =get_box(c->get_position());
+            if (index != i){
+                remove_element(i, c);
+                grid_cells[index].push_back(c);
+            }
+        }
+    }
+}
+
+// not working correctly...
+void Grid::draw_boxes(void){
+    int x, y, z;
+    float offset = (float) (x_length / (2.0*resolution)) - (x_length/2.0);
+    ofNoFill();
+    ofSetLineWidth(.5);
+    for (int i = 0; i < grid_cells.size(); i++){
+        if (grid_cells[i].size()){
+            get_coords(i, &x, &y, &z);
+            ofDrawBox(x + offset, y + offset, z + offset, (float) x_length / resolution, (float) y_length / resolution,
+                (float) z_length / resolution);
         }
     }
 }
 
 
+void Grid::draw_bounding_box(void){
+    ofNoFill();
+    ofSetLineWidth(1);
+    ofDrawBox(0, 0, 0, x_length, y_length, z_length);
+}
+
+//========================================================================
+Simulation::Simulation(void){
+    g = new Grid(100,100,100,100);
+    
+    vector<ofPoint> icos_vert = icosa_vertices();
+    for (ofPoint p : icos_vert){
+        Cell *c = new Cell(p*10);
+        g->add_cell(c);
+    }
+    init_springs(15);
+}
+
 void Simulation::init_springs(float radius){
-    for (Cell * c1 : cells){
-        for (Cell * c2 : cells){
+    for (Cell * c1 : g->iter()){
+        for (Cell * c2 : g->iter()){
             if ((c1 != c2) and (c1->get_position().distance(c2->get_position())) < radius) {
                 c1->add_spring(c2);
             }
@@ -480,7 +513,7 @@ void Simulation::init_springs(float radius){
 vector<Cell*> Simulation::find_collisions(Cell * c){
     vector<Cell*> colliderz;
     float roi_squared = c->get_roi();
-    for (Cell * other : cells){
+    for (Cell * other : g->iter()){
         if ((not c->is_connected(other)) and (c != other)
             and (c->get_position().squareDistance(other->get_position()) < roi_squared)){
             colliderz.push_back(other);
@@ -493,11 +526,11 @@ vector<Cell*> Simulation::find_collisions(Cell * c){
 void Simulation::update(){
     bool split_this_update = false;
     
-    for (Cell * c : cells){
-        vector<Cell*> collisions = find_collisions(c);
+    for (Cell * c : g->iter()){
+        vector<Cell*> collisions = g->get_collisions(c);
         c->update(collisions);
         
-        c->add_food(ofRandom(.45));
+        c->add_food(.3);
         if (c->get_food_amount() > split_threshold){
             split_this_update = true;
         }
@@ -508,20 +541,22 @@ void Simulation::update(){
     if (split_this_update){
         vector<Cell *> new_cells;
     
-        for (Cell * c : cells){
+        for (Cell * c : g->iter()){
             if (c->get_food_amount() > split_threshold){
                 Cell * bb = c->split();
                 new_cells.push_back(bb);
             }
         }
-        cells.insert(cells.end(), new_cells.begin(), new_cells.end());
+        for (Cell* c: new_cells){
+            g->add_cell(c);
+        }
     }
     
-    for (Cell* c: cells){
+    for (Cell* c: g->iter()){
         c->move();
-//        c->print();
     }
     
+    g->update_positions();
     
     
 //    average_positions();
@@ -529,47 +564,62 @@ void Simulation::update(){
 
 void Simulation::average_positions(void){
     ofPoint average = ofPoint(0,0,0);
-    for (Cell* c: cells){
+    for (Cell* c: g->iter()){
         average += c->get_position();
     }
     
-    average /= cells.size();
+    average /= g->size();
     
-    for (Cell* c : cells){
+    for (Cell* c : g->iter()){
         c->set_position(c->get_position()-average);
     }
 }
 
 void Simulation::render(void){
+    ofPushStyle();
+    
     render_springs();
     //render_normals();
-//    render_spheres(1);
-    render_normals();
+//    render_spheres(.5);
+//    render_normals();
+    g->draw_bounding_box();
+//    g->draw_boxes();
+    
+    ofPopStyle();
 }
 
 void Simulation::render_springs(void){
-    for (Cell * c : cells){
+    for (Cell * c : g->iter()){
         c->draw_springs();
     }
 }
 
 void Simulation::render_spheres(float radius){
-    for (Cell * c : cells){
+    for (Cell * c : g->iter()){
         c->draw_cell(radius);
-        
-        //for testing
-        //c->draw_spring_target(radius/3);
     }
 }
 
 void Simulation::render_normals(void){
-    for (Cell * c : cells){
+    for (Cell * c : g->iter()){
         c->draw_normal();
     }
 }
 
+void Simulation::render_bounding_box(void){
+    g->draw_bounding_box();
+}
+
 int Simulation::get_population(void){
-    return cells.size();
+    return g->size();
+}
+
+void Simulation::set_values(float _link_rest_length, float _roi_squared,
+                    float _spring_factor, float _bulge_factor, float _planar_factor,
+                           float _repulsion_strength){
+    for (Cell * c: g->iter()){
+        c->set_values(_link_rest_length, _roi_squared, _spring_factor, _bulge_factor, _planar_factor, _repulsion_strength);
+    }
 }
 
 
@@ -605,4 +655,34 @@ vector<ofPoint> icosa_vertices(void){
     vertices[11] =ofPoint(0,0,1); // the upper vertex
     
     return vertices;
+}
+
+vector<ofPoint> init_sphere_points(float n, float r){
+    
+    vector<ofPoint> return_me;
+    // distribute n cells of a sphere of radius r
+    int n_count = 0;
+    
+    float a = 4*PI/n;
+    float d = sqrt(a);
+    
+    float mv = round(PI/d);
+    
+    
+    float dv = PI / mv;
+    float dp = a / dv;
+    
+    for (int m = 0; m < mv; m++){
+        float v = PI*(m+0.5) / mv;
+        float mp = round(2*PI*sin(v) / dp);
+        for (int j = 0; j < mp; j++){
+            float p = 2*PI*j / mp;
+            ofPoint point = ofPoint(r*sin(v)*cos(p),
+                                    r*sin(v)*sin(p),
+                                    r*cos(v));
+            return_me.push_back(point);
+            n_count += 1;
+        }
+    }
+    return return_me;
 }

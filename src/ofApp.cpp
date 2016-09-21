@@ -4,21 +4,23 @@
 void ofApp::setup(){
     ofSetFrameRate(60);
     ofEnableDepthTest();
-    ofBackgroundGradient(ofColor::white, ofColor::lightGray);
     cam.setDistance(100);
+    
+    setup_gui();
     
     sim = new Simulation();
     
     light = new ofLight();
     light->setPointLight();
     light->setPosition(1000, 1000, 0);
-    
-    
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    sim->update();
+    if (!pause){
+        sim->set_values(link_rest_length, roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength);
+        sim->update();
+    }
 }
 
 //--------------------------------------------------------------
@@ -27,24 +29,43 @@ void ofApp::draw(){
                      " Population: " + ofToString(sim->get_population()));
     
     
-//    cout << "Frame Number: " + ofToString(ofGetFrameNum()) << endl;
-//    cout << ofToString(sim->get_population()) << endl;
+    ofBackgroundGradient(ofColor::white, ofColor::gray);
+    
+    ofPushStyle();
     cam.begin();
-    light->enable();
-    sim->render();
     
-    ofNoFill();
+    if (lights) light->enable();
     
-    ofDrawBox(0, 0, 0, 10, 10, 10);
+    ofSetColor(color);
     
-    light->disable();
+    if (render_springs){
+        sim->render_springs();
+    }
+    if (render_spheres){
+        
+        sim->render_spheres(sphere_size);
+    }
+    
+    sim->render_bounding_box();
+    
+    if (lights) light->disable();
+    
     cam.end();
+    ofPopStyle();
+    
+    
+    ofDisableDepthTest();
+    if(!bHide) gui.draw();
+    ofEnableDepthTest();
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-    if (key=='u') sim->update();
+    if (key=='p') pause = !pause ;
     if (key==' ') sim = new Simulation();
+    if(key == 'h') bHide = !bHide;
+	
 
 }
 
@@ -96,4 +117,38 @@ void ofApp::gotMessage(ofMessage msg){
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
+}
+
+void ofApp::setup_gui(void){
+    
+    resetButton.addListener(this, &ofApp::resetButtonPressed);
+    
+    gui.setup(); // most of the time you don't need a name
+
+    
+	gui.add(link_rest_length.setup("link_rest_length", 1.0, 0.0, 10.0));
+    gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 5));
+    gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 0.5));
+    gui.add(bulge_factor.setup("bulge_factor", 0.1 , 0.0, 0.5));
+    gui.add(planar_factor.setup("planar_factor", -0.01, -0.05, 0.05));
+    gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 0.5));
+    
+
+	gui.add(color.setup("color", ofColor(100, 100, 140), ofColor(0, 0), ofColor(255, 255)));
+	gui.add(circleResolution.setup("circle res", 5, 3, 90));
+    gui.add(render_springs.setup("render_springs", true));
+    gui.add(render_spheres.setup("render_spheres", false));
+    gui.add(sphere_size.setup("sphere_size", 1.0, 0.0, 1.5));
+    
+    gui.add(lights.setup("lights", false));
+    gui.add(pause.setup("pause", false));
+	gui.add(resetButton.setup("reset"));
+	gui.add(screenSize.setup("screen size", ofToString(ofGetWidth())+"x"+ofToString(ofGetHeight())));
+
+	bHide = false;
+}
+
+//--------------------------------------------------------------
+void ofApp::resetButtonPressed(){
+    sim = new Simulation();
 }

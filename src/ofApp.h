@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "main.h"
+#include "ofxGui.h"
 
 class ofApp : public ofBaseApp{
 
@@ -21,9 +22,28 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+    
+    
+        void setup_gui(void);
+    	void resetButtonPressed(void);
 
         ofEasyCam cam;
         Simulation * sim;
         ofLight * light;
-        bool update_sim = true;
+    
+    	bool bHide;
+
+        // gui
+        ofxFloatSlider link_rest_length, roi_squared, spring_factor,bulge_factor, planar_factor, repulsion_strength;
+        ofxColorSlider color;
+        ofxIntSlider circleResolution;
+        ofxToggle render_springs, render_spheres;
+        ofxFloatSlider sphere_size;
+    
+        ofxToggle lights;
+        ofxToggle pause;
+        ofxButton resetButton;
+        ofxLabel screenSize;
+
+        ofxPanel gui;
 };
