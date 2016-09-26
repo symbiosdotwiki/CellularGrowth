@@ -64,9 +64,8 @@ void ofApp::keyPressed(int key){
     if (key==' ') sim = new Simulation();
     if (key=='u') sim->update();
     if (key == 'h') bHide = !bHide;
-	
-
 }
+
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
@@ -129,7 +128,7 @@ void ofApp::setup_gui(void){
     gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 5));
     gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 0.5));
     gui.add(bulge_factor.setup("bulge_factor", 0.1 , 0.0, 0.5));
-    gui.add(planar_factor.setup("planar_factor", -0.01, -0.05, 0.05));
+    gui.add(planar_factor.setup("planar_factor", -0.0001, -0.05, 0.05));
     gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 0.5));
     gui.add(split_threshold.setup("split_threshold", 100, 0, 500));
     

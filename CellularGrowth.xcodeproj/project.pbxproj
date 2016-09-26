@@ -11,6 +11,8 @@
 		E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1D0A3A1BDC003C02F2 /* main.cpp */; };
 		E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */; };
 		EC0BF4BF1D92F43000191F5C /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = EC0BF4BD1D92F43000191F5C /* README.md */; };
+		EC48C3F41D995B42000975F5 /* cell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EC48C3F21D995B42000975F5 /* cell.cpp */; };
+		EC48C3FE1D9960A3000975F5 /* grid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EC48C3FC1D9960A2000975F5 /* grid.cpp */; };
 		ECE2D9BE1D92CC7A008F5CC8 /* ofxBaseGui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECE2D9AD1D92CC7A008F5CC8 /* ofxBaseGui.cpp */; };
 		ECE2D9BF1D92CC7A008F5CC8 /* ofxButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECE2D9AF1D92CC7A008F5CC8 /* ofxButton.cpp */; };
 		ECE2D9C01D92CC7A008F5CC8 /* ofxGuiGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECE2D9B21D92CC7A008F5CC8 /* ofxGuiGroup.cpp */; };
@@ -61,6 +63,10 @@
 		E4EB6923138AFD0F00A09F29 /* Project.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Project.xcconfig; sourceTree = "<group>"; };
 		EC0BF4BD1D92F43000191F5C /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		EC0BF4BE1D92F43000191F5C /* resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = resources; sourceTree = "<group>"; };
+		EC48C3F21D995B42000975F5 /* cell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cell.cpp; sourceTree = "<group>"; };
+		EC48C3F31D995B42000975F5 /* cell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cell.h; sourceTree = "<group>"; };
+		EC48C3FC1D9960A2000975F5 /* grid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = grid.cpp; sourceTree = "<group>"; };
+		EC48C3FD1D9960A3000975F5 /* grid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = grid.h; sourceTree = "<group>"; };
 		EC83547A1D88200E00679AB3 /* main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = main.h; sourceTree = "<group>"; };
 		ECE2D9AD1D92CC7A008F5CC8 /* ofxBaseGui.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxBaseGui.cpp; sourceTree = "<group>"; };
 		ECE2D9AE1D92CC7A008F5CC8 /* ofxBaseGui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxBaseGui.h; sourceTree = "<group>"; };
@@ -135,9 +141,13 @@
 			isa = PBXGroup;
 			children = (
 				E4B69E1D0A3A1BDC003C02F2 /* main.cpp */,
+				EC83547A1D88200E00679AB3 /* main.h */,
 				E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */,
 				E4B69E1F0A3A1BDC003C02F2 /* ofApp.h */,
-				EC83547A1D88200E00679AB3 /* main.h */,
+				EC48C3F21D995B42000975F5 /* cell.cpp */,
+				EC48C3F31D995B42000975F5 /* cell.h */,
+				EC48C3FC1D9960A2000975F5 /* grid.cpp */,
+				EC48C3FD1D9960A3000975F5 /* grid.h */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -272,6 +282,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				ECE2D9C11D92CC7A008F5CC8 /* ofxLabel.cpp in Sources */,
+				EC48C3FE1D9960A3000975F5 /* grid.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				ECE2D9BE1D92CC7A008F5CC8 /* ofxBaseGui.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
@@ -280,6 +291,7 @@
 				ECE2D9C31D92CC7A008F5CC8 /* ofxSlider.cpp in Sources */,
 				ECE2D9C51D92CC7A008F5CC8 /* ofxToggle.cpp in Sources */,
 				ECE2D9C41D92CC7A008F5CC8 /* ofxSliderGroup.cpp in Sources */,
+				EC48C3F41D995B42000975F5 /* cell.cpp in Sources */,
 				EC0BF4BF1D92F43000191F5C /* README.md in Sources */,
 				ECE2D9C01D92CC7A008F5CC8 /* ofxGuiGroup.cpp in Sources */,
 			);
@@ -372,7 +384,10 @@
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
 				INFOPLIST_FILE = "openFrameworks-Info.plist";
 				INSTALL_PATH = /Applications;
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/libiomp/20150701/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)Debug";
 				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = app;
@@ -396,7 +411,10 @@
 				ICON_FILE = "$(ICON_FILE_PATH)$(ICON)";
 				INFOPLIST_FILE = "openFrameworks-Info.plist";
 				INSTALL_PATH = /Applications;
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/libiomp/20150701/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = app;
