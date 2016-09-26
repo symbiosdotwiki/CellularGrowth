@@ -125,11 +125,11 @@ void ofApp::setup_gui(void){
 
     
 	gui.add(link_rest_length.setup("link_rest_length", 1.0, 0.0, 10.0));
-    gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 5));
-    gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 0.5));
-    gui.add(bulge_factor.setup("bulge_factor", 0.1 , 0.0, 0.5));
-    gui.add(planar_factor.setup("planar_factor", -0.0001, -0.05, 0.05));
-    gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 0.5));
+    gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 1.0));
+    gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 0.1));
+    gui.add(bulge_factor.setup("bulge_factor", 0.1 , 0.0, 0.1));
+    gui.add(planar_factor.setup("planar_factor", 0.1, 0.0, 0.1));
+    gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 0.3));
     gui.add(split_threshold.setup("split_threshold", 100, 0, 500));
     
 

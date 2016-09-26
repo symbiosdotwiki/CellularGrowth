@@ -12,21 +12,20 @@ int main( ){
 	// can be OF_WINDOW or OF_FULLSCREEN
 	// pass in width and height too:
 	ofRunApp(new ofApp());
-
 }
 
 
 //===========================================================================
 Simulation::Simulation(void){
-    g = new Grid(100,100);
+    g = new Grid(50,100);
     
-    vector<ofPoint> icos_vert =  subdivided_icosahedron(1);
+    vector<ofPoint> icos_vert =  subdivided_icosahedron(2);
     for (ofPoint p : icos_vert){
         p.normalize();
-        Cell *c = new Cell((p*(ofRandom(1.0)+10.0)));
+        Cell *c = new Cell(p*10.0);
         g->add_cell(c);
     }
-    init_springs(8);
+    init_springs(4);
 }
 
 void Simulation::init_springs(float radius){

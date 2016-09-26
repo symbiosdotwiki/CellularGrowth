@@ -7,6 +7,11 @@
 
 #include "cell.h"
 
+struct Spring {
+    Cell * c;
+    float rest_length;
+};
+
 Cell::Cell(ofPoint _position){
     position = _position;
     original_pos = _position;
@@ -79,7 +84,6 @@ void Cell::calculate_planar_target(void){
         bulge_target += c->position;
     }
     bulge_target /= connections.size();
-    bulge_target += position;
     return bulge_target;
 }
 
@@ -356,5 +360,3 @@ ofPoint Cell::get_position(void){
 void Cell::set_position(ofPoint new_pos){
     position = new_pos;
 }
-
-

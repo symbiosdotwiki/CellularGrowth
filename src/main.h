@@ -10,9 +10,8 @@
 #define main_h
 
 #include "ofMain.h"
-#include "cell.h"
 #include "grid.h"
-
+#include "cell.h"
 
 class Simulation{
 public:
