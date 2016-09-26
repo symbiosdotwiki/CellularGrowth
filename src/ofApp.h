@@ -35,9 +35,10 @@ class ofApp : public ofBaseApp{
 
         // gui
         ofxFloatSlider link_rest_length, roi_squared, spring_factor,bulge_factor, planar_factor, repulsion_strength;
+        ofxFloatSlider split_threshold;
         ofxColorSlider color;
         ofxIntSlider circleResolution;
-        ofxToggle render_springs, render_spheres;
+        ofxToggle render_springs, render_spheres, render_boxes, render_normals;
         ofxFloatSlider sphere_size;
     
         ofxToggle lights;

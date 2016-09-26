@@ -19,6 +19,7 @@ void ofApp::setup(){
 void ofApp::update(){
     if (!pause){
         sim->set_values(link_rest_length, roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength);
+        sim->set_split_threshold(split_threshold);
         sim->update();
     }
 }
@@ -38,13 +39,10 @@ void ofApp::draw(){
     
     ofSetColor(color);
     
-    if (render_springs){
-        sim->render_springs();
-    }
-    if (render_spheres){
-        
-        sim->render_spheres(sphere_size);
-    }
+    if (render_springs) sim->render_springs();
+    if (render_spheres) sim->render_spheres(sphere_size);
+    if (render_boxes) sim->render_boxes();
+    if (render_normals) sim->render_normals();
     
     sim->render_bounding_box();
     
@@ -64,7 +62,8 @@ void ofApp::draw(){
 void ofApp::keyPressed(int key){
     if (key=='p') pause = !pause ;
     if (key==' ') sim = new Simulation();
-    if(key == 'h') bHide = !bHide;
+    if (key=='u') sim->update();
+    if (key == 'h') bHide = !bHide;
 	
 
 }
@@ -132,16 +131,19 @@ void ofApp::setup_gui(void){
     gui.add(bulge_factor.setup("bulge_factor", 0.1 , 0.0, 0.5));
     gui.add(planar_factor.setup("planar_factor", -0.01, -0.05, 0.05));
     gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 0.5));
+    gui.add(split_threshold.setup("split_threshold", 100, 0, 500));
     
 
 	gui.add(color.setup("color", ofColor(100, 100, 140), ofColor(0, 0), ofColor(255, 255)));
 	gui.add(circleResolution.setup("circle res", 5, 3, 90));
     gui.add(render_springs.setup("render_springs", true));
     gui.add(render_spheres.setup("render_spheres", false));
+    gui.add(render_boxes.setup("render_boxes", false));
+    gui.add(render_normals.setup("render_normals", false));
     gui.add(sphere_size.setup("sphere_size", 1.0, 0.0, 1.5));
     
     gui.add(lights.setup("lights", false));
-    gui.add(pause.setup("pause", false));
+    gui.add(pause.setup("pause", true));
 	gui.add(resetButton.setup("reset"));
 	gui.add(screenSize.setup("screen size", ofToString(ofGetWidth())+"x"+ofToString(ofGetHeight())));
 

@@ -88,7 +88,7 @@ private:
 
 class Grid{
 public:
-    Grid(int resolution, float _x_length, float _y_length, float _z_length);
+    Grid(int resolution, int size);
     ~Grid(void);
     
     bool in_bounds(int x, int y, int z);
@@ -100,17 +100,15 @@ public:
     void draw_bounding_box(void);
     vector<Cell*> iter(void);
     void draw_boxes(void);
-    int size(void);
-    
-
+    int get_size(void);
     
 private:
     vector<vector<Cell*>> grid_cells;
     vector<Cell*> cell_iter;
     void remove_element(int index, Cell* c);
     void get_coords(int index, int *x, int *y, int *z);
-    float x_length, y_length, z_length;
-    int resolution;
+    void get_grid_coords(int index, int* x, int* y, int* z);
+    int size, resolution;
 };
 
 class Simulation{
@@ -125,6 +123,7 @@ public:
     void render_springs(void);
     void render_normals(void);
     void render_bounding_box(void);
+    void render_boxes(void);
     void update(void);
     
     int get_population(void);
@@ -132,6 +131,7 @@ public:
     void set_values(float _link_rest_length, float _roi_squared,
                     float _spring_factor, float _bulge_factor,
                     float _planar_factor,float _repulsion_strength);
+    void set_split_threshold(float _split_threshold);
     
 private:
     void init_springs(float);
@@ -146,6 +146,9 @@ private:
 
 // sphere creation
 vector<ofPoint> icosa_vertices(void);
+void subdivide_iteration(deque<ofPoint>* vertices);
+vector<ofPoint> remove_duplicates(deque<ofPoint>* dup_list);
+vector<ofPoint> subdivided_icosahedron(int levels);
 vector<ofPoint> init_sphere_points(float n, float r);
 
 #endif /* main_h */
