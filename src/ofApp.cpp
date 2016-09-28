@@ -18,7 +18,7 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
     if (!pause){
-        sim->set_values(link_rest_length, roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength);
+        sim->set_values(roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength);
         sim->set_split_threshold(split_threshold);
         sim->update();
     }
@@ -50,7 +50,6 @@ void ofApp::draw(){
     
     cam.end();
     ofPopStyle();
-    
     
     ofDisableDepthTest();
     if(!bHide) gui.draw();
@@ -127,8 +126,8 @@ void ofApp::setup_gui(void){
 	gui.add(link_rest_length.setup("link_rest_length", 1.0, 0.0, 10.0));
     gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 1.0));
     gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 0.1));
-    gui.add(bulge_factor.setup("bulge_factor", 0.1 , 0.0, 0.1));
-    gui.add(planar_factor.setup("planar_factor", 0.1, 0.0, 0.1));
+    gui.add(bulge_factor.setup("bulge_factor", 0.0 , 0.0, 0.01));
+    gui.add(planar_factor.setup("planar_factor", 0.0, 0.0, 0.01));
     gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 0.3));
     gui.add(split_threshold.setup("split_threshold", 100, 0, 500));
     

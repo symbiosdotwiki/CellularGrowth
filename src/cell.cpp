@@ -7,16 +7,10 @@
 
 #include "cell.h"
 
-struct Spring {
-    Cell * c;
-    float rest_length;
-};
-
 Cell::Cell(ofPoint _position){
     position = _position;
     original_pos = _position;
     age = 0;
-//    col = ofColor::fromHsb(ofRandom(255), 255, 255, 255);
 }
 
 Cell::Cell(ofPoint _position, int _age, ofPoint _cell_normal){
@@ -25,7 +19,6 @@ Cell::Cell(ofPoint _position, int _age, ofPoint _cell_normal){
     original_pos = _position;
     age = _age;
     cell_normal = _cell_normal;
-    //col = ofColor::fromHsb(ofRandom(255), 255, 255, 255);
 }
 
 bool Cell::is_connected(Cell* c){
@@ -59,8 +52,8 @@ vector<Cell*>* Cell::get_connections(void){
 void Cell::calculate_spring_target(void){
     /*
      The tendency for linked cells to maintain a constant distance from each other is implemented using a linear spring- like system. The target position for the springs is calculated by taking the average of the rest positions that each link would push the particle to if it were the only influence.
-     
     */
+    
     spring_target = ofPoint(0,0,0);
     for (Cell * c : connections){
         ofPoint delta =position - c->get_position();
@@ -91,10 +84,12 @@ void Cell::calculate_bulge_target(void){
     /*
      The bulge target position is determined by calculating the distance that each link would have to push the particle outwards along the direction of the surface normal in order to restore the link to its rest length. This is designed to have an effect of tending to bulge the surface outwards in the direction of the normal when links are in compression. The bulge distance due to each link is calculated by a simple application of the cosine formula for triangles, and the average taken for all the links to create the desired overall distance bulgeDist in the direction of the normal. The bulgeTarget vector is then taken by going bulgeDist in the direction of the surface normal from P.
      */
+    
     bulge_distance = 0;
     for (Cell* c : connections){
         ofPoint L = c->get_position() - position;
-        float dotN = (L - position).dot(cell_normal);
+        // decided to use absolute val
+        float dotN = abs((L - position).dot(cell_normal));
         float radicand = pow(link_rest_length, 2) - pow(L.length(), 2) + pow(dotN, 2);
         if (radicand < 0.0) radicand = 0;
 
@@ -133,7 +128,6 @@ Cell* Cell::find_next(Cell* current, Cell* previous){
     throw 0;
     return NULL;
 }
-
 
 float Cell::get_average_link_len(void){
     float avg = 0;
@@ -271,17 +265,20 @@ Cell* Cell::split(void){
     for (Cell* c : *bb->get_connections()){
         average2 += c->get_position();
     }
+    
     average2 /= bb->get_connections()->size();
     
     next_position= (position + average1)/2.0;
                  
     bb->next_position = ((bb->get_position() + average2) /2.0);
     
+    link_rest_length *= .7;
+    bb->link_rest_length = link_rest_length;
     return bb;
 }
 
-void Cell::set_values(float _link_rest_length, float _roi_squared, float _spring_factor, float _bulge_factor, float _planar_factor, float _repulsion_strength){
-    link_rest_length = _link_rest_length;
+void Cell::set_values(float _roi_squared, float _spring_factor, float _bulge_factor, float _planar_factor, float _repulsion_strength){
+//    link_rest_length = _link_rest_length;
     roi_squared = _roi_squared;
     spring_factor = _spring_factor;
     bulge_factor = _bulge_factor;
@@ -302,6 +299,22 @@ void Cell::update(vector<Cell*> collision_list){
     next_position += planar_factor * (planar_target - position);
     next_position += bulge_factor * (bulge_target - position);
     next_position += collision_offset;
+    
+    age++;
+    
+}
+
+void Cell::update_without_collisions(void){
+    calculate_normal();
+   
+    calculate_spring_target();
+    calculate_planar_target();
+    calculate_bulge_target();
+    
+    next_position = position;
+    next_position += spring_factor * (spring_target - position);
+    next_position += planar_factor * (planar_target - position);
+    next_position += bulge_factor * (bulge_target - position);
     
     age++;
     
@@ -335,6 +348,14 @@ void Cell::draw_loop(void){
         ofPoint p2 = loop[(i+1)%loop.size()]->get_position();
         ofDrawLine(p1, p1+((p2-p1)/(i+1)));
     }
+}
+
+ofPoint Cell::get_spring_target(void){
+    return spring_target;
+}
+
+vector<Cell*> Cell::get_springs(void){
+    return connections;
 }
 
 void Cell::draw_spring_target(float radius){

@@ -55,10 +55,15 @@ void Simulation::update(){
     bool split_this_update = false;
     
     for (Cell * c : g->iter()){
-        vector<Cell*> collisions = g->get_collisions(c);
-        c->update(collisions);
         
-        c->add_food(ofRandom(1));
+        if (roi_squared > 0){
+            vector<Cell*> collisions = g->get_collisions(c);
+            c->update(collisions);
+        } else {
+            c->update_without_collisions();
+        }
+        
+        c->add_food(ofNoise(c->get_position() * 10.0));
         if (c->get_food_amount() > split_threshold){
             split_this_update = true;
         }
@@ -142,12 +147,13 @@ int Simulation::get_population(void){
     return g->get_size();
 }
 
-void Simulation::set_values(float _link_rest_length, float _roi_squared,
-                    float _spring_factor, float _bulge_factor, float _planar_factor,
-                           float _repulsion_strength){
+void Simulation::set_values(float _roi_squared, float _spring_factor,
+                    float _bulge_factor, float _planar_factor,
+                    float _repulsion_strength){
     for (Cell * c: g->iter()){
-        c->set_values(_link_rest_length, _roi_squared, _spring_factor, _bulge_factor, _planar_factor, _repulsion_strength);
+        c->set_values(_roi_squared, _spring_factor, _bulge_factor, _planar_factor, _repulsion_strength);
     }
+    roi_squared = _roi_squared;
 }
 
 void Simulation::set_split_threshold(float _split_threshold){

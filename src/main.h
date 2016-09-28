@@ -30,9 +30,10 @@ public:
     
     int get_population(void);
     
-    void set_values(float _link_rest_length, float _roi_squared,
-                    float _spring_factor, float _bulge_factor,
-                    float _planar_factor,float _repulsion_strength);
+    void set_values(float _roi_squared, float _spring_factor,
+                    float _bulge_factor, float _planar_factor,
+                    float _repulsion_strength);
+    
     void set_split_threshold(float _split_threshold);
     
 private:
@@ -40,8 +41,8 @@ private:
 
     void average_positions(void);
     vector<Cell*> find_collisions(Cell* c);
-    float split_threshold = 10;
-    
+    float split_threshold = 10.0;
+    float roi_squared;
     Grid* g;
 };
 

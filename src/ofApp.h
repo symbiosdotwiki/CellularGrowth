@@ -1,9 +1,8 @@
 #pragma once
 
+//#include <libiomp/omp.h>
 #include "main.h"
 #include "ofxGui.h"
-
-#include "cell.h"
 
 class ofApp : public ofBaseApp{
 

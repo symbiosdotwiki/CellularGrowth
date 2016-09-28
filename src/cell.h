@@ -27,20 +27,24 @@ public:
     float get_food_amount(void);
     float get_roi(void);
     vector<Cell*>* get_connections(void);
-    
     vector<Cell*> connections;
+    vector<float> rest_lengths;
     
     Cell* split(void);
     
-    void set_values(float _link_rest_length, float _roi_squared,
+    void set_values(float _roi_squared,
                     float _spring_factor, float _bulge_factor,
                     float _planar_factor, float _repulsion_strength);
     void update(vector<Cell*> collision_list);
+    void update_without_collisions(void);
     void move(void);
     void print(void);
     
     bool dup = false;
     
+    
+    ofPoint get_spring_target(void);
+    vector<Cell*> get_springs(void);
     void draw_springs(void);
     void draw_spring_target(float radius);
     void draw_normal(void);
@@ -58,12 +62,12 @@ private:
     float food = 0;
     float age;
     
-    float link_rest_length = .24;
+    float link_rest_length = 3.0;
     float bulge_distance;
     float roi_squared = .25;
     
     float spring_factor = 0.01;
-    float planar_factor = -0.005;
+    float planar_factor = 0.01;
     float bulge_factor = 0.01;
     float repulsion_strength = 0.1;
     
