@@ -9,10 +9,17 @@ void ofApp::setup(){
     setup_gui();
     
     sim = new Simulation();
+  
+    time = getDate();
     
     light = new ofLight();
     light->setPointLight();
     light->setPosition(1000, 1000, 0);
+    
+    fbo = new ofFbo();
+    fbo->allocate(WIDTH, HEIGHT, GL_RGBA);
+    
+    shader.load("shadersGL2/shader");
 }
 
 //--------------------------------------------------------------
@@ -29,13 +36,14 @@ void ofApp::draw(){
     ofSetWindowTitle("FPS: " + ofToString(ofGetFrameRate()) +
                      " Population: " + ofToString(sim->get_population()));
     
+
     
     ofBackgroundGradient(ofColor::white, ofColor::gray);
     
     ofPushStyle();
     cam.begin();
     
-    if (lights) light->enable();
+    if (lights) shader.begin();
     
     ofSetColor(color);
     
@@ -46,7 +54,7 @@ void ofApp::draw(){
     
     sim->render_bounding_box();
     
-    if (lights) light->disable();
+    if (lights) shader.end();
     
     cam.end();
     ofPopStyle();
@@ -119,13 +127,12 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 void ofApp::setup_gui(void){
     
     resetButton.addListener(this, &ofApp::resetButtonPressed);
+    saveButton.addListener(this, &ofApp::saveButtonPressed);
     
     gui.setup(); // most of the time you don't need a name
-
     
-	gui.add(link_rest_length.setup("link_rest_length", 1.0, 0.0, 10.0));
     gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 1.0));
-    gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 0.1));
+    gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 1.0));
     gui.add(bulge_factor.setup("bulge_factor", 0.0 , 0.0, 0.01));
     gui.add(planar_factor.setup("planar_factor", 0.0, 0.0, 0.01));
     gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 0.3));
@@ -138,11 +145,12 @@ void ofApp::setup_gui(void){
     gui.add(render_spheres.setup("render_spheres", false));
     gui.add(render_boxes.setup("render_boxes", false));
     gui.add(render_normals.setup("render_normals", false));
-    gui.add(sphere_size.setup("sphere_size", 1.0, 0.0, 1.5));
+    gui.add(sphere_size.setup("sphere_size", 1.0, 0.0, 10));
     
     gui.add(lights.setup("lights", false));
     gui.add(pause.setup("pause", true));
 	gui.add(resetButton.setup("reset"));
+    gui.add(saveButton.setup("save"));
 	gui.add(screenSize.setup("screen size", ofToString(ofGetWidth())+"x"+ofToString(ofGetHeight())));
 
 	bHide = false;
@@ -151,4 +159,20 @@ void ofApp::setup_gui(void){
 //--------------------------------------------------------------
 void ofApp::resetButtonPressed(){
     sim = new Simulation();
+}
+
+void ofApp::saveButtonPressed(){
+    string s = *sim->point_list();
+    
+    string file_name = "saved/saved_output_";
+    file_name.append(time + "_frame" + ofToString(ofGetFrameNum()));
+    
+    ofBuffer msg(s.c_str(), s.length());
+    ofBufferToFile(file_name, msg);
+}
+
+string ofApp::getDate(void){
+    return ofToString(ofGetMonth()) + "_" + ofToString(ofGetDay()) + "_" +
+    ofToString(ofGetHours()) + "_" + ofToString(ofGetMinutes()) + "_" +
+    ofToString(ofGetSeconds());
 }

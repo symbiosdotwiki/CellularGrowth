@@ -62,7 +62,7 @@ private:
     float food = 0;
     float age;
     
-    float link_rest_length = 3.0;
+    float link_rest_length = 8.0;
     float bulge_distance;
     float roi_squared = .25;
     

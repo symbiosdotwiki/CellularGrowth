@@ -4,9 +4,13 @@
 #include "main.h"
 #include "ofxGui.h"
 
+#define WIDTH 1920
+#define HEIGHT 1080
+
 class ofApp : public ofBaseApp{
 
 	public:
+    
 		void setup();
 		void update();
 		void draw();
@@ -26,15 +30,19 @@ class ofApp : public ofBaseApp{
     
         void setup_gui(void);
     	void resetButtonPressed(void);
+        void saveButtonPressed(void);
+        string getDate(void);
 
         ofEasyCam cam;
         Simulation * sim;
         ofLight * light;
+        ofShader shader;
+        ofFbo* fbo;
     
     	bool bHide;
 
         // gui
-        ofxFloatSlider link_rest_length, roi_squared, spring_factor,bulge_factor, planar_factor, repulsion_strength;
+        ofxFloatSlider roi_squared, spring_factor,bulge_factor, planar_factor, repulsion_strength;
         ofxFloatSlider split_threshold;
         ofxColorSlider color;
         ofxIntSlider circleResolution;
@@ -43,8 +51,11 @@ class ofApp : public ofBaseApp{
     
         ofxToggle lights;
         ofxToggle pause;
-        ofxButton resetButton;
+        ofxButton resetButton, saveButton;
         ofxLabel screenSize;
 
         ofxPanel gui;
+    
+        string time;
+
 };

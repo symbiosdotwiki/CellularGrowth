@@ -11,6 +11,7 @@
 		E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1D0A3A1BDC003C02F2 /* main.cpp */; };
 		E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */; };
 		EC0BF4BF1D92F43000191F5C /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = EC0BF4BD1D92F43000191F5C /* README.md */; };
+		EC1747C91D9EBA5E0056BE58 /* simulation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EC1747C71D9EBA5E0056BE58 /* simulation.cpp */; };
 		EC48C3F41D995B42000975F5 /* cell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EC48C3F21D995B42000975F5 /* cell.cpp */; };
 		EC48C3FE1D9960A3000975F5 /* grid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EC48C3FC1D9960A2000975F5 /* grid.cpp */; };
 		ECE2D9BE1D92CC7A008F5CC8 /* ofxBaseGui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECE2D9AD1D92CC7A008F5CC8 /* ofxBaseGui.cpp */; };
@@ -63,11 +64,14 @@
 		E4EB6923138AFD0F00A09F29 /* Project.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Project.xcconfig; sourceTree = "<group>"; };
 		EC0BF4BD1D92F43000191F5C /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		EC0BF4BE1D92F43000191F5C /* resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = resources; sourceTree = "<group>"; };
+		EC1747C71D9EBA5E0056BE58 /* simulation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = simulation.cpp; sourceTree = "<group>"; };
+		EC1747C81D9EBA5E0056BE58 /* simulation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simulation.h; sourceTree = "<group>"; };
 		EC2F3C051D9AB35B009ED522 /* libiomp */ = {isa = PBXFileReference; lastKnownFileType = folder; name = libiomp; path = ../../../../../../../usr/local/Cellar/libiomp/20150701/include/libiomp; sourceTree = "<group>"; };
 		EC48C3F21D995B42000975F5 /* cell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cell.cpp; sourceTree = "<group>"; };
 		EC48C3F31D995B42000975F5 /* cell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cell.h; sourceTree = "<group>"; };
 		EC48C3FC1D9960A2000975F5 /* grid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = grid.cpp; sourceTree = "<group>"; };
 		EC48C3FD1D9960A3000975F5 /* grid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = grid.h; sourceTree = "<group>"; };
+		EC7A8E1F1D9F06B300DF31B3 /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = bin/data; sourceTree = "<group>"; };
 		EC83547A1D88200E00679AB3 /* main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = main.h; sourceTree = "<group>"; };
 		ECE2D9AD1D92CC7A008F5CC8 /* ofxBaseGui.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxBaseGui.cpp; sourceTree = "<group>"; };
 		ECE2D9AE1D92CC7A008F5CC8 /* ofxBaseGui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxBaseGui.h; sourceTree = "<group>"; };
@@ -126,6 +130,7 @@
 		E4B69B4A0A3A1720003C02F2 = {
 			isa = PBXGroup;
 			children = (
+				EC7A8E1F1D9F06B300DF31B3 /* data */,
 				EC2F3C051D9AB35B009ED522 /* libiomp */,
 				EC0BF4BD1D92F43000191F5C /* README.md */,
 				EC0BF4BE1D92F43000191F5C /* resources */,
@@ -146,6 +151,8 @@
 				E4B69E1F0A3A1BDC003C02F2 /* ofApp.h */,
 				E4B69E1D0A3A1BDC003C02F2 /* main.cpp */,
 				EC83547A1D88200E00679AB3 /* main.h */,
+				EC1747C71D9EBA5E0056BE58 /* simulation.cpp */,
+				EC1747C81D9EBA5E0056BE58 /* simulation.h */,
 				EC48C3F21D995B42000975F5 /* cell.cpp */,
 				EC48C3F31D995B42000975F5 /* cell.h */,
 				EC48C3FC1D9960A2000975F5 /* grid.cpp */,
@@ -285,6 +292,7 @@
 			files = (
 				ECE2D9C11D92CC7A008F5CC8 /* ofxLabel.cpp in Sources */,
 				EC48C3FE1D9960A3000975F5 /* grid.cpp in Sources */,
+				EC1747C91D9EBA5E0056BE58 /* simulation.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				ECE2D9BE1D92CC7A008F5CC8 /* ofxBaseGui.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
