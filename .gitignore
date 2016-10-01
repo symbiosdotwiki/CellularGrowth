@@ -1,4 +1,5 @@
 bin/CellularGrowth
 bin/CellularGrowthDebug
+bin/saved/*
 
 .DS_Store
