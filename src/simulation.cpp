@@ -10,20 +10,30 @@
 
 //===========================================================================
 Simulation::Simulation(void){
-    g = new Grid(50,100);
-    
-    vector<ofPoint> icos_vert =  subdivided_icosahedron(2);
-    for (ofPoint p : icos_vert){
-        p.normalize();
-        Cell *c = new Cell(p*30.0);
-        g->add_cell(c);
-    }
-    init_springs(12);
+    initialize();
 }
 
+void Simulation::initialize(void){
+    g = new Grid(50,300);
+    
+    vector<ofPoint> icos_vert =  subdivided_icosahedron(1);
+    for (ofPoint p : icos_vert){
+        p.normalize();
+        Cell *c = new Cell(p);
+        g->add_cell(c);
+    }
+    init_springs(.7);
+    
+    for (Cell* c : *g->iter()){
+        c->set_position(c->get_position()*5.0);
+    }
+    
+}
+
+
 void Simulation::init_springs(float radius){
-    for (Cell * c1 : g->iter()){
-        for (Cell * c2 : g->iter()){
+    for (Cell * c1 : *g->iter()){
+        for (Cell * c2 : *g->iter()){
             if ((c1 != c2) and (c1->get_position().distance(c2->get_position())) < radius) {
                 c1->add_spring(c2);
             }
@@ -34,21 +44,49 @@ void Simulation::init_springs(float radius){
 vector<Cell*> Simulation::find_collisions(Cell * c){
     vector<Cell*> colliderz;
     float roi_squared = c->get_roi();
-    for (Cell * other : g->iter()){
+    for (Cell * other : *g->iter()){
         if ((not c->is_connected(other)) and (c != other)
             and (c->get_position().squareDistance(other->get_position()) < roi_squared)){
             colliderz.push_back(other);
         }
-
     }
     return colliderz;
+}
+
+void Simulation::spread_food(Cell* c, float amount, float decay){
+    std::deque<Cell*> q;
+    q.push_back(c);
+    c->next_food_delta = amount;
+    c->spread = true;
+    
+    while (not q.empty()){
+        Cell* cur = q.front();
+        q.pop_front();
+        
+        for (Cell* n : *cur->get_connections()){
+            if (not (n->spread)){
+                n->spread = true;
+                n->next_food_delta = cur->next_food_delta * decay;
+                q.push_back(n);
+            }
+        }
+    }
+}
+
+void Simulation::add_food(float amount){
+    for (Cell* c : *g->iter()){
+        c->add_food(amount*ofRandom(1.0));
+    }
 }
 
 void Simulation::update(){
     bool split_this_update = false;
     
-    for (Cell * c : g->iter()){
-        
+    // spread food throughout the system
+//    spread_food(g->get_head(), 1.0, 0.99);
+    add_food(1.0);
+    
+    for (Cell * c : *g->iter()){
         if (roi_squared > 0){
             vector<Cell*> collisions = g->get_collisions(c);
             c->update(collisions);
@@ -56,7 +94,6 @@ void Simulation::update(){
             c->update_without_collisions();
         }
         
-        c->add_food(ofNoise(c->get_position() * 10.0));
         if (c->get_food_amount() > split_threshold){
             split_this_update = true;
         }
@@ -65,7 +102,7 @@ void Simulation::update(){
     if (split_this_update){
         vector<Cell *> new_cells;
     
-        for (Cell * c : g->iter()){
+        for (Cell * c : *g->iter()){
             if (c->get_food_amount() > split_threshold){
                 Cell * bb = c->split();
                 new_cells.push_back(bb);
@@ -76,25 +113,24 @@ void Simulation::update(){
         }
     }
     
-    for (Cell* c: g->iter()){
-        c->move();
+    for (Cell* c: *g->iter()){
+        c->tick();
     }
     
     g->update_positions();
     
-    
-//    average_positions();
+    average_positions();
 }
 
 void Simulation::average_positions(void){
     ofPoint average = ofPoint(0,0,0);
-    for (Cell* c: g->iter()){
+    for (Cell* c: *g->iter()){
         average += c->get_position();
     }
     
     average /= g->get_size();
     
-    for (Cell* c : g->iter()){
+    for (Cell* c : *g->iter()){
         c->set_position(c->get_position()-average);
     }
 }
@@ -103,28 +139,33 @@ void Simulation::render(void){
     ofPushStyle();
     
     render_springs();
-    //render_normals();
-//    render_spheres(.5);
+    
     g->draw_boxes();
     
     ofPopStyle();
 }
 
 void Simulation::render_springs(void){
-    for (Cell * c : g->iter()){
+    for (Cell * c : *g->iter()){
         c->draw_springs();
     }
 }
 
 void Simulation::render_spheres(float radius){
-    for (Cell * c : g->iter()){
+    for (Cell * c : *g->iter()){
         c->draw_cell(radius);
     }
 }
 
 void Simulation::render_normals(void){
-    for (Cell * c : g->iter()){
+    for (Cell * c : *g->iter()){
         c->draw_normal();
+    }
+}
+
+void Simulation::render_planar(void){
+    for (Cell * c : *g->iter()){
+        c->draw_planar_target();
     }
 }
 
@@ -142,9 +183,11 @@ int Simulation::get_population(void){
 
 void Simulation::set_values(float _roi_squared, float _spring_factor,
                     float _bulge_factor, float _planar_factor,
-                    float _repulsion_strength){
-    for (Cell * c: g->iter()){
-        c->set_values(_roi_squared, _spring_factor, _bulge_factor, _planar_factor, _repulsion_strength);
+                    float _repulsion_strength, float _spring_decay_rate,
+                    float _link_rest_length){
+    float spring_decay_rate = _spring_decay_rate;
+    for (Cell * c: *g->iter()){
+        c->set_values(_roi_squared, _spring_factor, _bulge_factor, _planar_factor, _repulsion_strength, spring_decay_rate, _link_rest_length);
     }
     roi_squared = _roi_squared;
 }
@@ -155,10 +198,14 @@ void Simulation::set_split_threshold(float _split_threshold){
 
 std::string* Simulation::point_list(void){
     s = "";
-    for (Cell* c : g->iter()){
+    for (Cell* c : *g->iter()){
         s.append(ofToString(c->get_position()) + "\n");
     }
     return &s;
+}
+
+void Simulation::reset(void){
+    initialize();
 }
 
 

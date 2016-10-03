@@ -20,22 +20,16 @@ void Grid::add_cell(Cell* c){
     cell_iter.push_back(c);
 }
 
-vector<Cell*> Grid::iter(void){
-    return cell_iter;
+vector<Cell*>* Grid::iter(void){
+    return &cell_iter;
 }
 
-bool Grid::in_bounds(int x, int y, int z){
-    //todo
-    return true;
-    /*
-    return ((abs(x) < (x_length/2.0))
-            and (abs(y) < (y_length/2.0))
-            and (abs(z) < (z_length/2.0)));
-     */
+Cell* Grid::get_head(void){
+    return cell_iter[0];
 }
+
 
 int Grid::get_index(int x, int y, int z){
-    if (not in_bounds(x,y,z)) return - 1;
     return (resolution*resolution*z) + (resolution*y) + x;
 }
 
@@ -59,8 +53,6 @@ void Grid::get_grid_coords(int index, int* x, int* y, int*z){
 int Grid::get_size(void){
     return cell_iter.size();
 }
-
-
 
 vector<Cell*> Grid::get_collisions(Cell* c){
     int x, y, z, index;

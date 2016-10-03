@@ -24,9 +24,10 @@ public:
     void add_cell(Cell* c);
     void update_positions(void);
     void draw_bounding_box(void);
-    vector<Cell*> iter(void);
+    vector<Cell*>* iter(void);
     void draw_boxes(void);
     int get_size(void);
+    Cell* get_head(void);
     
 private:
     vector<vector<Cell*>> grid_cells;

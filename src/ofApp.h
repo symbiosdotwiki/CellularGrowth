@@ -31,18 +31,18 @@ class ofApp : public ofBaseApp{
         void setup_gui(void);
     	void resetButtonPressed(void);
         void saveButtonPressed(void);
+        void setValues(void);
         string getDate(void);
 
         ofEasyCam cam;
         Simulation * sim;
         ofLight * light;
         ofShader shader;
-        ofFbo* fbo;
     
     	bool bHide;
 
         // gui
-        ofxFloatSlider roi_squared, spring_factor,bulge_factor, planar_factor, repulsion_strength;
+        ofxFloatSlider roi_squared, spring_factor,bulge_factor, planar_factor, repulsion_strength, spring_decay_rate, link_rest_length;
         ofxFloatSlider split_threshold;
         ofxColorSlider color;
         ofxIntSlider circleResolution;

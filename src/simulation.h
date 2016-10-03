@@ -19,8 +19,9 @@ public:
     Simulation(void);
     ~Simulation(void);
     
+    void initialize(void);
     void render(void);
-    
+    void render_planar(void);
     void render_spheres(float radius = 3);
     void render_springs(void);
     void render_normals(void);
@@ -32,15 +33,18 @@ public:
     
     void set_values(float _roi_squared, float _spring_factor,
                     float _bulge_factor, float _planar_factor,
-                    float _repulsion_strength);
+                    float _repulsion_strength, float spring_decay_rate,
+                    float _link_rest_length);
     
     void set_split_threshold(float _split_threshold);
     
     std::string* point_list(void);
+    void reset(void);
     
 private:
     void init_springs(float);
-
+    void spread_food(Cell* c, float amount, float decay);
+    void add_food(float amount);
     void average_positions(void);
     vector<Cell*> find_collisions(Cell* c);
     float split_threshold = 10.0;

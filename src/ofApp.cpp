@@ -9,6 +9,7 @@ void ofApp::setup(){
     setup_gui();
     
     sim = new Simulation();
+    setValues();
   
     time = getDate();
     
@@ -16,16 +17,13 @@ void ofApp::setup(){
     light->setPointLight();
     light->setPosition(1000, 1000, 0);
     
-    fbo = new ofFbo();
-    fbo->allocate(WIDTH, HEIGHT, GL_RGBA);
-    
     shader.load("shadersGL2/shader");
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
     if (!pause){
-        sim->set_values(roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength);
+        setValues();
         sim->set_split_threshold(split_threshold);
         sim->update();
     }
@@ -133,12 +131,13 @@ void ofApp::setup_gui(void){
     
     gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 1.0));
     gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 1.0));
-    gui.add(bulge_factor.setup("bulge_factor", 0.0 , 0.0, 0.01));
-    gui.add(planar_factor.setup("planar_factor", 0.0, 0.0, 0.01));
-    gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 0.3));
+    gui.add(bulge_factor.setup("bulge_factor", 0.0 , 0.0, 1.0));
+    gui.add(planar_factor.setup("planar_factor", 0.0, 0.0, 1.0));
+    gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 1.0));
     gui.add(split_threshold.setup("split_threshold", 100, 0, 500));
+    gui.add(spring_decay_rate.setup("spring_decay_rate", 1.0, 0.0, 1.0));
+    gui.add(link_rest_length.setup("link_rest_length", 5.0, 1.0, 10.0));
     
-
 	gui.add(color.setup("color", ofColor(100, 100, 140), ofColor(0, 0), ofColor(255, 255)));
 	gui.add(circleResolution.setup("circle res", 5, 3, 90));
     gui.add(render_springs.setup("render_springs", true));
@@ -158,7 +157,7 @@ void ofApp::setup_gui(void){
 
 //--------------------------------------------------------------
 void ofApp::resetButtonPressed(){
-    sim = new Simulation();
+    sim->reset();
 }
 
 void ofApp::saveButtonPressed(){
@@ -175,4 +174,8 @@ string ofApp::getDate(void){
     return ofToString(ofGetMonth()) + "_" + ofToString(ofGetDay()) + "_" +
     ofToString(ofGetHours()) + "_" + ofToString(ofGetMinutes()) + "_" +
     ofToString(ofGetSeconds());
+}
+
+void ofApp::setValues(void){
+    sim->set_values(roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength, spring_decay_rate, link_rest_length);
 }

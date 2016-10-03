@@ -30,7 +30,7 @@ void Cell::add_spring(Cell * c){
 }
 
 void Cell::add_food(float amount){
-    food += amount;
+    next_food_delta += amount;
 }
 
 void Cell::reset_food(void){
@@ -72,12 +72,11 @@ void Cell::calculate_planar_target(void){
      The planar target position, which acts similar to a torsion spring, is simply calculated by taking the average of all the positions of directly linked particles. This is designed to have the effect of tending to reduce folds and bumps in the surface, restoring the surface to a local planar state.
     */
     
-    bulge_target = ofPoint(0,0,0);
+    planar_target = ofPoint(0,0,0);
     for (Cell *c : connections){
-        bulge_target += c->position;
+        planar_target+= c->position;
     }
-    bulge_target /= connections.size();
-    return bulge_target;
+    planar_target/= connections.size();
 }
 
 void Cell::calculate_bulge_target(void){
@@ -89,7 +88,8 @@ void Cell::calculate_bulge_target(void){
     for (Cell* c : connections){
         ofPoint L = c->get_position() - position;
         // decided to use absolute val
-        float dotN = abs((L - position).dot(cell_normal));
+        float tmp = (L - position).dot(cell_normal);
+        float dotN = (tmp > 0) ? tmp : 0 ;
         float radicand = pow(link_rest_length, 2) - pow(L.length(), 2) + pow(dotN, 2);
         if (radicand < 0.0) radicand = 0;
 
@@ -168,7 +168,7 @@ void Cell::calculate_normal(void){
     Cell * previous = loop.back();
     
     
-    for (int i = 0; i <loop.size(); i++){
+    for (int i = 0; i < loop.size(); i++){
         // add the normalized cross product
         ofPoint v1 = (current->get_position() - position);
         ofPoint v2 = (previous->get_position() - position);
@@ -191,9 +191,11 @@ void Cell::calculate_normal(void){
         }
     } else {
         if (cell_normal.dot(temp) < 0){
-            temp *= -1;
+//        if (position.dot(temp) < 0){
+            temp *= -1.0;
         }
     }
+    if (position.dot(temp) < 0) food = 0;
                            
     cell_normal = temp;
 }
@@ -272,21 +274,23 @@ Cell* Cell::split(void){
                  
     bb->next_position = ((bb->get_position() + average2) /2.0);
     
-    link_rest_length *= .7;
+    link_rest_length *= spring_decay_rate;
     bb->link_rest_length = link_rest_length;
     return bb;
 }
 
-void Cell::set_values(float _roi_squared, float _spring_factor, float _bulge_factor, float _planar_factor, float _repulsion_strength){
-//    link_rest_length = _link_rest_length;
+void Cell::set_values(float _roi_squared, float _spring_factor, float _bulge_factor, float _planar_factor, float _repulsion_strength, float _spring_decay_rate, float _link_rest_length){
+    link_rest_length = _link_rest_length;
     roi_squared = _roi_squared;
     spring_factor = _spring_factor;
     bulge_factor = _bulge_factor;
     repulsion_strength = _repulsion_strength;
     planar_factor = _planar_factor;
+    spring_decay_rate = _spring_decay_rate;
 }
 
 void Cell::update(vector<Cell*> collision_list){
+    collision_num = collision_list.size();
     calculate_normal();
    
     calculate_spring_target();
@@ -301,7 +305,6 @@ void Cell::update(vector<Cell*> collision_list){
     next_position += collision_offset;
     
     age++;
-    
 }
 
 void Cell::update_without_collisions(void){
@@ -317,11 +320,13 @@ void Cell::update_without_collisions(void){
     next_position += bulge_factor * (bulge_target - position);
     
     age++;
-    
 }
 
-void Cell::move(void){
+void Cell::tick(void){
     position = next_position;
+    food += next_food_delta;
+    next_food_delta = 0;
+    spread = false;
 }
 
 void Cell::print(void){
@@ -363,10 +368,18 @@ void Cell::draw_spring_target(float radius){
     ofDrawBox(spring_target, radius);
 }
 
+void Cell::draw_planar_target(void){
+    ofSetColor(col);
+    ofDrawBox(planar_target, 1);
+}
+
 void Cell::draw_normal(void){
-    ofSetColor(ofColor::black);
+    ofPushStyle();
+    if (position.dot(cell_normal) > 0) ofSetColor(ofColor::black);
+    else (ofSetColor(ofColor::red));
     ofSetLineWidth(2);
     ofDrawLine(position, position + cell_normal);
+    ofPopStyle();
 }
 
 void Cell::draw_cell(float radius){

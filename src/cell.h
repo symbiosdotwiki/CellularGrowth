@@ -34,19 +34,26 @@ public:
     
     void set_values(float _roi_squared,
                     float _spring_factor, float _bulge_factor,
-                    float _planar_factor, float _repulsion_strength);
+                    float _planar_factor, float _repulsion_strength,
+                    float _spring_decay_rate, float _link_rest_length);
+    void set_rest_length(float _rest_length);
     void update(vector<Cell*> collision_list);
     void update_without_collisions(void);
-    void move(void);
+    void tick(void);
     void print(void);
     
     bool dup = false;
+    bool spread = false;
+    float next_food_delta = 0;
+    float spring_decay_rate;
+    int collision_num = 0;
     
     
     ofPoint get_spring_target(void);
     vector<Cell*> get_springs(void);
     void draw_springs(void);
     void draw_spring_target(float radius);
+    void draw_planar_target(void);
     void draw_normal(void);
     void draw_cell(float radius);
     void draw_loop(void);
@@ -59,10 +66,12 @@ private:
     ofPoint cell_normal;
     ofColor col;
     
+    
     float food = 0;
     float age;
     
-    float link_rest_length = 8.0;
+    float link_rest_length = 1.0;
+    float ititial_link_rest_length = 1.0;
     float bulge_distance;
     float roi_squared = .25;
     
@@ -70,7 +79,6 @@ private:
     float planar_factor = 0.01;
     float bulge_factor = 0.01;
     float repulsion_strength = 0.1;
-    
     
     Cell* find_next(Cell* current, Cell* previous);
     void remove_spring(Cell* to_remove);
