@@ -20,7 +20,7 @@ public:
     bool in_bounds(int x, int y, int z);
     int get_index(int x, int y, int z);
     int get_box(ofPoint p);
-    vector<Cell*> get_collisions(Cell* c);
+    void set_collisions(Cell* c);
     void add_cell(Cell* c);
     void update_positions(void);
     void draw_bounding_box(void);

@@ -54,13 +54,13 @@ int Grid::get_size(void){
     return cell_iter.size();
 }
 
-vector<Cell*> Grid::get_collisions(Cell* c){
+void Grid::set_collisions(Cell* c){
     int x, y, z, index;
     index = get_box(c->get_position());
     get_grid_coords(index, &x, &y, &z);
     float roi_squared = c->get_roi();
     
-    vector<Cell*> neighbors;
+    c->collisions.clear();
     
     for (int i = -1; i <= 1; i++){
         for (int j = -1; j <= 1; j++){
@@ -68,14 +68,12 @@ vector<Cell*> Grid::get_collisions(Cell* c){
                 for (Cell* other : grid_cells[get_index(x+i, y+j, z+k)]){
                     if ((not c->is_connected(other)) and (c != other)
                         and (c->get_position().squareDistance(other->get_position()) < roi_squared)){
-                        neighbors.push_back(other);
+                        c->collisions.push_back(other);
                     }
                 }
             }
         }
     }
-    
-    return neighbors;
 }
 
 void Grid::remove_element(int index, Cell* c){

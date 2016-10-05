@@ -29,6 +29,7 @@ public:
     vector<Cell*>* get_connections(void);
     vector<Cell*> connections;
     vector<float> rest_lengths;
+    vector<Cell*> collisions;
     
     Cell* split(void);
     
@@ -37,7 +38,7 @@ public:
                     float _planar_factor, float _repulsion_strength,
                     float _spring_decay_rate, float _link_rest_length);
     void set_rest_length(float _rest_length);
-    void update(vector<Cell*> collision_list);
+    void update(void);
     void update_without_collisions(void);
     void tick(void);
     void print(void);
@@ -87,7 +88,7 @@ private:
     void calculate_spring_target(void);
     void calculate_planar_target(void);
     void calculate_bulge_target(void);
-    void calculate_collision_offset(vector<Cell*> collision_list);
+    void calculate_collision_offset(void);
     
     void calculate_normal(void);
     vector<Cell*> get_ordered_neighbors(void);

@@ -88,8 +88,8 @@ void Simulation::update(){
     
     for (Cell * c : *g->iter()){
         if (roi_squared > 0){
-            vector<Cell*> collisions = g->get_collisions(c);
-            c->update(collisions);
+            g->set_collisions(c);
+            c->update();
         } else {
             c->update_without_collisions();
         }

@@ -1,8 +1,8 @@
 #pragma once
 
-//#include <libiomp/omp.h>
 #include "main.h"
 #include "ofxGui.h"
+#include <thread>
 
 #define WIDTH 1920
 #define HEIGHT 1080

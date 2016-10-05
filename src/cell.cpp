@@ -100,10 +100,10 @@ void Cell::calculate_bulge_target(void){
 }
 
 
-void Cell::calculate_collision_offset(vector<Cell*> collision_list){
+void Cell::calculate_collision_offset(void){
     collision_offset = ofPoint(0,0,0);
     ofPoint temp;
-    for (Cell* c : collision_list){
+    for (Cell* c : collisions){
         temp = (position-c->get_position()).normalize();
         temp *= (roi_squared - (position - get_position()).lengthSquared())/roi_squared;
         collision_offset += temp;
@@ -289,14 +289,14 @@ void Cell::set_values(float _roi_squared, float _spring_factor, float _bulge_fac
     spring_decay_rate = _spring_decay_rate;
 }
 
-void Cell::update(vector<Cell*> collision_list){
-    collision_num = collision_list.size();
+void Cell::update(void){
+    collision_num = collisions.size();
     calculate_normal();
    
     calculate_spring_target();
     calculate_planar_target();
     calculate_bulge_target();
-    calculate_collision_offset(collision_list);
+    calculate_collision_offset();
     
     next_position = position;
     next_position += spring_factor * (spring_target - position);
