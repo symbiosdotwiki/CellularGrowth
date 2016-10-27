@@ -36,7 +36,7 @@ public:
     void set_values(float _roi_squared,
                     float _spring_factor, float _bulge_factor,
                     float _planar_factor, float _repulsion_strength,
-                    float _spring_decay_rate, float _link_rest_length);
+                    float _link_rest_length);
     void set_rest_length(float _rest_length);
     void update(void);
     void update_without_collisions(void);

@@ -42,15 +42,15 @@ class ofApp : public ofBaseApp{
     	bool bHide;
 
         // gui
-        ofxFloatSlider roi_squared, spring_factor,bulge_factor, planar_factor, repulsion_strength, spring_decay_rate, link_rest_length;
+        ofxFloatSlider roi_squared, spring_factor,bulge_factor, planar_factor, repulsion_strength, link_rest_length;
         ofxFloatSlider split_threshold;
+        ofxIntSlider food_mode;
         ofxColorSlider color;
-        ofxIntSlider circleResolution;
         ofxToggle render_springs, render_spheres, render_boxes, render_normals;
         ofxFloatSlider sphere_size;
     
-        ofxToggle lights;
-        ofxToggle pause;
+        ofxToggle lights, pause;
+        ofxVec2Slider depth;
         ofxButton resetButton, saveButton;
         ofxLabel screenSize;
 

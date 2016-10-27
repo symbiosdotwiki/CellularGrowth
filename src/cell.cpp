@@ -274,19 +274,17 @@ Cell* Cell::split(void){
                  
     bb->next_position = ((bb->get_position() + average2) /2.0);
     
-    link_rest_length *= spring_decay_rate;
     bb->link_rest_length = link_rest_length;
     return bb;
 }
 
-void Cell::set_values(float _roi_squared, float _spring_factor, float _bulge_factor, float _planar_factor, float _repulsion_strength, float _spring_decay_rate, float _link_rest_length){
+void Cell::set_values(float _roi_squared, float _spring_factor, float _bulge_factor, float _planar_factor, float _repulsion_strength, float _link_rest_length){
     link_rest_length = _link_rest_length;
     roi_squared = _roi_squared;
     spring_factor = _spring_factor;
     bulge_factor = _bulge_factor;
     repulsion_strength = _repulsion_strength;
     planar_factor = _planar_factor;
-    spring_decay_rate = _spring_decay_rate;
 }
 
 void Cell::update(void){

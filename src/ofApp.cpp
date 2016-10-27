@@ -41,7 +41,10 @@ void ofApp::draw(){
     ofPushStyle();
     cam.begin();
     
-    if (lights) shader.begin();
+    if (lights) {
+        shader.begin();
+        shader.setUniform2f("clipping", depth->x, depth->y);
+    }
     
     ofSetColor(color);
     
@@ -129,17 +132,16 @@ void ofApp::setup_gui(void){
     
     gui.setup(); // most of the time you don't need a name
     
-    gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 1.0));
+    gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 3.0));
     gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 1.0));
     gui.add(bulge_factor.setup("bulge_factor", 0.0 , 0.0, 1.0));
     gui.add(planar_factor.setup("planar_factor", 0.0, 0.0, 1.0));
     gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 1.0));
     gui.add(split_threshold.setup("split_threshold", 100, 0, 500));
-    gui.add(spring_decay_rate.setup("spring_decay_rate", 1.0, 0.0, 1.0));
     gui.add(link_rest_length.setup("link_rest_length", 5.0, 1.0, 10.0));
+    gui.add(food_mode.setup("food_mode", 1, 0, 2));
     
 	gui.add(color.setup("color", ofColor(100, 100, 140), ofColor(0, 0), ofColor(255, 255)));
-	gui.add(circleResolution.setup("circle res", 5, 3, 90));
     gui.add(render_springs.setup("render_springs", true));
     gui.add(render_spheres.setup("render_spheres", false));
     gui.add(render_boxes.setup("render_boxes", false));
@@ -147,6 +149,7 @@ void ofApp::setup_gui(void){
     gui.add(sphere_size.setup("sphere_size", 1.0, 0.0, 10));
     
     gui.add(lights.setup("lights", false));
+    gui.add(depth.setup("depth", ofVec2f(0, 1000), ofVec2f(0, 0), ofVec2f(1000,1000)));
     gui.add(pause.setup("pause", true));
 	gui.add(resetButton.setup("reset"));
     gui.add(saveButton.setup("save"));
@@ -177,5 +180,5 @@ string ofApp::getDate(void){
 }
 
 void ofApp::setValues(void){
-    sim->set_values(roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength, spring_decay_rate, link_rest_length);
+    sim->set_values(roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength, link_rest_length, food_mode);
 }

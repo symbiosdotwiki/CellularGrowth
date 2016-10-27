@@ -14,6 +14,4 @@
 #include "cell.h"
 #include "simulation.h"
 
-
-
 #endif /* main_h */

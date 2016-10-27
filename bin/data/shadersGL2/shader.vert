@@ -1,9 +1,11 @@
 #version 120
 
 varying float DEPTH ;
+uniform vec2 clipping;
 
 void main()
 {
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-    DEPTH = gl_Position.z / 100.0; // do not divide by w
+    
+    DEPTH = (clamp(gl_Position.z, clipping.x, clipping.y) - clipping.x)/(clipping.y - clipping.x);
 }

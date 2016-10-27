@@ -4,7 +4,6 @@
 //
 //  Created by Sage Jenson on 9/30/16.
 //
-//
 
 #include "simulation.h"
 
@@ -27,7 +26,6 @@ void Simulation::initialize(void){
     for (Cell* c : *g->iter()){
         c->set_position(c->get_position()*5.0);
     }
-    
 }
 
 
@@ -79,12 +77,19 @@ void Simulation::add_food(float amount){
     }
 }
 
+void Simulation::calcification_food(float amount){
+    for (Cell* c : *g->iter()){
+        c->add_food(amount / (1.0 + (float) c->collision_num));
+    }
+}
+
 void Simulation::update(){
     bool split_this_update = false;
     
     // spread food throughout the system
-//    spread_food(g->get_head(), 1.0, 0.99);
-    add_food(1.0);
+    if (CONSTANT == mode) add_food(1.0);
+    else if (BREADTH == mode) spread_food(g->get_head(), 1.0, 0.99);
+    else if (DENSITY == mode) calcification_food(1.0);
     
     for (Cell * c : *g->iter()){
         if (roi_squared > 0){
@@ -183,13 +188,13 @@ int Simulation::get_population(void){
 
 void Simulation::set_values(float _roi_squared, float _spring_factor,
                     float _bulge_factor, float _planar_factor,
-                    float _repulsion_strength, float _spring_decay_rate,
-                    float _link_rest_length){
-    float spring_decay_rate = _spring_decay_rate;
+                    float _repulsion_strength,
+                    float _link_rest_length, int _food_mode){
     for (Cell * c: *g->iter()){
-        c->set_values(_roi_squared, _spring_factor, _bulge_factor, _planar_factor, _repulsion_strength, spring_decay_rate, _link_rest_length);
+        c->set_values(_roi_squared, _spring_factor, _bulge_factor, _planar_factor, _repulsion_strength, _link_rest_length);
     }
     roi_squared = _roi_squared;
+    mode = (food_mode_enum) _food_mode;
 }
 
 void Simulation::set_split_threshold(float _split_threshold){

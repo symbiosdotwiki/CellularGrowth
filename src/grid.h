@@ -4,7 +4,6 @@
 //
 //  Created by Sage Jenson on 9/26/16.
 //
-//
 
 #ifndef grid_h
 #define grid_h
