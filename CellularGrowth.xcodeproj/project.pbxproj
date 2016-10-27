@@ -67,6 +67,7 @@
 		EC1747C71D9EBA5E0056BE58 /* simulation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = simulation.cpp; sourceTree = "<group>"; };
 		EC1747C81D9EBA5E0056BE58 /* simulation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simulation.h; sourceTree = "<group>"; };
 		EC2F3C051D9AB35B009ED522 /* libiomp */ = {isa = PBXFileReference; lastKnownFileType = folder; name = libiomp; path = ../../../../../../../usr/local/Cellar/libiomp/20150701/include/libiomp; sourceTree = "<group>"; };
+		EC4583641DC270C800D91431 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		EC48C3F21D995B42000975F5 /* cell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cell.cpp; sourceTree = "<group>"; };
 		EC48C3F31D995B42000975F5 /* cell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cell.h; sourceTree = "<group>"; };
 		EC48C3FC1D9960A2000975F5 /* grid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = grid.cpp; sourceTree = "<group>"; };
@@ -133,6 +134,7 @@
 				EC7A8E1F1D9F06B300DF31B3 /* data */,
 				EC2F3C051D9AB35B009ED522 /* libiomp */,
 				EC0BF4BD1D92F43000191F5C /* README.md */,
+				EC4583641DC270C800D91431 /* .gitignore */,
 				EC0BF4BE1D92F43000191F5C /* resources */,
 				E4B6FCAD0C3E899E008CF71C /* openFrameworks-Info.plist */,
 				E4EB6923138AFD0F00A09F29 /* Project.xcconfig */,
