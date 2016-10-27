@@ -1,7 +1,7 @@
 bin/CellularGrowth
 bin/CellularGrowthDebug
 bin/saved/*
-CellularGrowth.xcodeproj/project.xcworkspace/*
+CellularGrowth.xcodeproj/*
 
 
 .DS_Store
