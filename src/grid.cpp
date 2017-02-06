@@ -20,7 +20,7 @@ void Grid::add_cell(Cell* c){
     cell_iter.push_back(c);
 }
 
-vector<Cell*>* Grid::iter(void){
+std::vector<Cell*>* Grid::iter(void){
     return &cell_iter;
 }
 
@@ -33,8 +33,8 @@ int Grid::get_index(int x, int y, int z){
     return (resolution*resolution*z) + (resolution*y) + x;
 }
 
-int Grid::get_box(ofPoint p){
-    p += ofPoint(size/2, size/2, size/2);
+int Grid::get_box(Vec3f p){
+    p += Vec3f(size/2, size/2, size/2);
     
     int x = (p.x * resolution) / size;
     int y = (p.y * resolution) / size;
@@ -52,6 +52,10 @@ void Grid::get_grid_coords(int index, int* x, int* y, int*z){
 
 int Grid::get_size(void){
     return cell_iter.size();
+}
+
+int Grid::get_bounding_size(void){
+    return size;
 }
 
 void Grid::set_collisions(Cell* c){
@@ -104,6 +108,7 @@ void Grid::get_coords(int index, int * x, int * y, int * z){
     (*z) *= scale;
 }
 
+/*
 // not working correctly...
 void Grid::draw_boxes(void){
     int x, y, z;
@@ -123,3 +128,4 @@ void Grid::draw_bounding_box(void){
     ofSetLineWidth(1);
     ofDrawBox(0, 0, 0, size);
 }
+*/

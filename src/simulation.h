@@ -9,7 +9,10 @@
 #ifndef simulation_h
 #define simulation_h
 
-#include "ofMain.h"
+#include <vector>
+#include <deque>
+#include <math.h>
+#include "utils.h"
 #include "cell.h"
 #include "grid.h"
 
@@ -20,8 +23,9 @@ public:
     
     Simulation(void);
     ~Simulation(void);
-    
     void initialize(void);
+    std::vector<Cell*>* get_cells(void);
+    /*
     void render(void);
     void render_planar(void);
     void render_spheres(float radius = 3);
@@ -29,6 +33,8 @@ public:
     void render_normals(void);
     void render_bounding_box(void);
     void render_boxes(void);
+     */
+    
     void update(void);
     
     int get_population(void);
@@ -40,8 +46,11 @@ public:
     
     void set_split_threshold(float _split_threshold);
     
-    std::string* point_list(void);
+    int get_size(void);
+    
+    //std::string* point_list(void);
     void reset(void);
+    
     
 private:
     void init_springs(float);
@@ -49,19 +58,19 @@ private:
     void add_food(float amount);
     void calcification_food(float amount);
     void average_positions(void);
-    vector<Cell*> find_collisions(Cell* c);
+    std::vector<Cell*> find_collisions(Cell* c);
     float split_threshold = 10.0;
     float roi_squared;
     bool equal_food;
     Grid* g;
     
     // sphere creation
-    vector<ofPoint> icosa_vertices(void);
-    void subdivide_iteration(deque<ofPoint>* vertices);
-    vector<ofPoint> remove_duplicates(deque<ofPoint>* dup_list);
-    vector<ofPoint> subdivided_icosahedron(int levels);
-    vector<ofPoint> init_sphere_points(float n, float r);
-    string s;
+    std::vector<Vec3f> icosa_vertices(void);
+    void subdivide_iteration(std::deque<Vec3f>* vertices);
+    std::vector<Vec3f> remove_duplicates(std::deque<Vec3f>* dup_list);
+    std::vector<Vec3f> subdivided_icosahedron(int levels);
+    std::vector<Vec3f> init_sphere_points(float n, float r);
+    std::string s;
     food_mode_enum mode;
 };
 

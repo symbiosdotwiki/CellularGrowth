@@ -15,8 +15,8 @@ Simulation::Simulation(void){
 void Simulation::initialize(void){
     g = new Grid(50,300);
     
-    vector<ofPoint> icos_vert =  subdivided_icosahedron(1);
-    for (ofPoint p : icos_vert){
+    std::vector<Vec3f> icos_vert =  subdivided_icosahedron(1);
+    for (Vec3f p : icos_vert){
         p.normalize();
         Cell *c = new Cell(p);
         g->add_cell(c);
@@ -39,8 +39,8 @@ void Simulation::init_springs(float radius){
     }
 }
 
-vector<Cell*> Simulation::find_collisions(Cell * c){
-    vector<Cell*> colliderz;
+std::vector<Cell*> Simulation::find_collisions(Cell * c){
+    std::vector<Cell*> colliderz;
     float roi_squared = c->get_roi();
     for (Cell * other : *g->iter()){
         if ((not c->is_connected(other)) and (c != other)
@@ -73,7 +73,7 @@ void Simulation::spread_food(Cell* c, float amount, float decay){
 
 void Simulation::add_food(float amount){
     for (Cell* c : *g->iter()){
-        c->add_food(amount*ofRandom(1.0));
+        c->add_food(amount*range_random(1.0));
     }
 }
 
@@ -105,7 +105,7 @@ void Simulation::update(){
     }
     
     if (split_this_update){
-        vector<Cell *> new_cells;
+        std::vector<Cell *> new_cells;
     
         for (Cell * c : *g->iter()){
             if (c->get_food_amount() > split_threshold){
@@ -128,7 +128,7 @@ void Simulation::update(){
 }
 
 void Simulation::average_positions(void){
-    ofPoint average = ofPoint(0,0,0);
+    Vec3f average = Vec3f(0,0,0);
     for (Cell* c: *g->iter()){
         average += c->get_position();
     }
@@ -140,46 +140,8 @@ void Simulation::average_positions(void){
     }
 }
 
-void Simulation::render(void){
-    ofPushStyle();
-    
-    render_springs();
-    
-    g->draw_boxes();
-    
-    ofPopStyle();
-}
-
-void Simulation::render_springs(void){
-    for (Cell * c : *g->iter()){
-        c->draw_springs();
-    }
-}
-
-void Simulation::render_spheres(float radius){
-    for (Cell * c : *g->iter()){
-        c->draw_cell(radius);
-    }
-}
-
-void Simulation::render_normals(void){
-    for (Cell * c : *g->iter()){
-        c->draw_normal();
-    }
-}
-
-void Simulation::render_planar(void){
-    for (Cell * c : *g->iter()){
-        c->draw_planar_target();
-    }
-}
-
-void Simulation::render_bounding_box(void){
-    g->draw_bounding_box();
-}
-
-void Simulation::render_boxes(void){
-    g->draw_boxes();
+std::vector<Cell*>* Simulation::get_cells(void){
+    return g->iter();
 }
 
 int Simulation::get_population(void){
@@ -201,6 +163,8 @@ void Simulation::set_split_threshold(float _split_threshold){
     split_threshold = _split_threshold;
 }
 
+/*
+
 std::string* Simulation::point_list(void){
     s = "";
     for (Cell* c : *g->iter()){
@@ -208,6 +172,7 @@ std::string* Simulation::point_list(void){
     }
     return &s;
 }
+ */
 
 void Simulation::reset(void){
     initialize();
@@ -215,51 +180,51 @@ void Simulation::reset(void){
 
 
 // Sphere creation functions
-vector<ofPoint> Simulation::icosa_vertices(void){
-    vector<ofPoint> vertices(12);
+std::vector<Vec3f> Simulation::icosa_vertices(void){
+    std::vector<Vec3f> vertices(12);
     
-    double theta = 26.56505117707799 * PI / 180.0;
+    double theta = 26.56505117707799 * M_PI / 180.0;
     
     double stheta = sin(theta);
     double ctheta = cos(theta);
     
-    vertices[0] = ofPoint(0,0,-1);
+    vertices[0] = Vec3f(0,0,-1);
     
     // the lower pentagon
-    double phi = PI / 5.0;
+    double phi = M_PI / 5.0;
     for (int i = 1; i < 6; ++i) {
-        vertices[i] = ofPoint(ctheta * cos(phi), ctheta * sin(phi), -stheta);
+        vertices[i] = Vec3f(ctheta * cos(phi), ctheta * sin(phi), -stheta);
         
-        phi += 2.0 * PI / 5.0;
+        phi += 2.0 * M_PI / 5.0;
     }
     
     // the upper pentagon
     phi = 0.0;
     for (int i = 6; i < 11; ++i) {
-        vertices[i] = ofPoint(ctheta * cos(phi), ctheta * sin(phi), stheta);
+        vertices[i] = Vec3f(ctheta * cos(phi), ctheta * sin(phi), stheta);
         
-        phi += 2.0 * PI / 5.0;
+        phi += 2.0 * M_PI / 5.0;
     }
     
-    vertices[11] =ofPoint(0,0,1); // the upper vertex
+    vertices[11] =Vec3f(0,0,1); // the upper vertex
     
     return vertices;
 }
 
-void Simulation::subdivide_iteration(deque<ofPoint>* vertices){
+void Simulation::subdivide_iteration(std::deque<Vec3f>* vertices){
     int original_size = vertices->size();
     
     for (int i = 0; i < original_size; i += 3){
-        ofPoint v1 = vertices->front();
+        Vec3f v1 = vertices->front();
         vertices->pop_front();
-        ofPoint v2 = vertices->front();
+        Vec3f v2 = vertices->front();
         vertices->pop_front();
-        ofPoint v3 = vertices->front();
+        Vec3f v3 = vertices->front();
         vertices->pop_front();
         
-        ofPoint v4 = (v1 + v2) / 2.0;
-        ofPoint v5 = (v2 + v3) / 2.0;
-        ofPoint v6 = (v3 + v1) / 2.0;
+        Vec3f v4 = (v1 + v2) / 2.0;
+        Vec3f v5 = (v2 + v3) / 2.0;
+        Vec3f v6 = (v3 + v1) / 2.0;
         
         vertices->push_back(v1);
         vertices->push_back(v4);
@@ -280,14 +245,14 @@ void Simulation::subdivide_iteration(deque<ofPoint>* vertices){
 }
 
 
-vector<ofPoint> Simulation::remove_duplicates(deque<ofPoint>* dup_list){
-    vector<ofPoint> unique_list;
+std::vector<Vec3f> Simulation::remove_duplicates(std::deque<Vec3f>* dup_list){
+    std::vector<Vec3f> unique_list;
     bool contains = false;
     while (not dup_list->empty()){
-        ofPoint p = dup_list->front();
+        Vec3f p = dup_list->front();
         dup_list->pop_front();
         unique_list.push_back(p);
-        deque<ofPoint>::iterator it;
+        std::deque<Vec3f>::iterator it;
         
         for (it =dup_list->begin(); it !=dup_list->end();){
             if (it->match(p)){
@@ -301,10 +266,10 @@ vector<ofPoint> Simulation::remove_duplicates(deque<ofPoint>* dup_list){
     return unique_list;
 }
 
-vector<ofPoint> Simulation::subdivided_icosahedron(int levels){
-    vector<ofPoint> icosahedron = icosa_vertices();
+std::vector<Vec3f> Simulation::subdivided_icosahedron(int levels){
+    std::vector<Vec3f> icosahedron = icosa_vertices();
     
-    std::deque<ofPoint> vertices;
+    std::deque<Vec3f> vertices;
     
     int triangles[] = {0,2,1,0,3,2,0,4,3,0,5,4,0,1,5,1,2,7,2,3,8,3,4,9,4,5,10,5,1,6,1,
         7,6,2,8,7,3,9,8,4,10,9,5,6,10,6,7,11,7,8,11,8,9,11,9,10,11,10,6,11};
@@ -317,32 +282,32 @@ vector<ofPoint> Simulation::subdivided_icosahedron(int levels){
         subdivide_iteration(&vertices);
     }
     
-    vector<ofPoint> final_point_list = remove_duplicates(&vertices);
+    std::vector<Vec3f> final_point_list = remove_duplicates(&vertices);
     
     return final_point_list;
 }
 
-vector<ofPoint> Simulation::init_sphere_points(float n, float r){
+std::vector<Vec3f> Simulation::init_sphere_points(float n, float r){
     
-    vector<ofPoint> return_me;
+    std::vector<Vec3f> return_me;
     // distribute n cells of a sphere of radius r
     int n_count = 0;
     
-    float a = 4*PI/n;
+    float a = 4*M_PI/n;
     float d = sqrt(a);
     
-    float mv = round(PI/d);
+    float mv = round(M_PI/d);
     
     
-    float dv = PI / mv;
+    float dv = M_PI / mv;
     float dp = a / dv;
     
     for (int m = 0; m < mv; m++){
-        float v = PI*(m+0.5) / mv;
-        float mp = round(2*PI*sin(v) / dp);
+        float v = M_PI*(m+0.5) / mv;
+        float mp = round(2*M_PI*sin(v) / dp);
         for (int j = 0; j < mp; j++){
-            float p = 2*PI*j / mp;
-            ofPoint point = ofPoint(r*sin(v)*cos(p),
+            float p = 2*M_PI*j / mp;
+            Vec3f point = Vec3f(r*sin(v)*cos(p),
                                     r*sin(v)*sin(p),
                                     r*cos(v));
             return_me.push_back(point);
@@ -350,5 +315,9 @@ vector<ofPoint> Simulation::init_sphere_points(float n, float r){
         }
     }
     return return_me;
+}
+
+int Simulation::get_size(){
+    return g->get_bounding_size();
 }
 

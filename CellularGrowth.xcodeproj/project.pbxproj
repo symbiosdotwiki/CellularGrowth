@@ -91,6 +91,8 @@
 		ECE2D9BB1D92CC7A008F5CC8 /* ofxSliderGroup.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxSliderGroup.h; sourceTree = "<group>"; };
 		ECE2D9BC1D92CC7A008F5CC8 /* ofxToggle.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxToggle.cpp; sourceTree = "<group>"; };
 		ECE2D9BD1D92CC7A008F5CC8 /* ofxToggle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxToggle.h; sourceTree = "<group>"; };
+		ECE2EDA51E47D0AD0087D60F /* Vec3f.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Vec3f.h; sourceTree = "<group>"; };
+		ECE2EDA61E47D4E00087D60F /* utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = utils.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -155,10 +157,12 @@
 				EC83547A1D88200E00679AB3 /* main.h */,
 				EC1747C71D9EBA5E0056BE58 /* simulation.cpp */,
 				EC1747C81D9EBA5E0056BE58 /* simulation.h */,
-				EC48C3F21D995B42000975F5 /* cell.cpp */,
-				EC48C3F31D995B42000975F5 /* cell.h */,
 				EC48C3FC1D9960A2000975F5 /* grid.cpp */,
 				EC48C3FD1D9960A3000975F5 /* grid.h */,
+				EC48C3F21D995B42000975F5 /* cell.cpp */,
+				EC48C3F31D995B42000975F5 /* cell.h */,
+				ECE2EDA51E47D0AD0087D60F /* Vec3f.h */,
+				ECE2EDA61E47D4E00087D60F /* utils.h */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;

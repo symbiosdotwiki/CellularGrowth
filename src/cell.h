@@ -9,12 +9,13 @@
 #ifndef cell_h
 #define cell_h
 
-#include "ofMain.h"
+#include "utils.h"
+#include <vector>
 
 class Cell {
 public:
-    Cell(ofPoint _position);
-    Cell(ofPoint _position, int _age, ofPoint _cell_normal);
+    Cell(Vec3f _position);
+    Cell(Vec3f _position, int _age, Vec3f _cell_normal);
     ~Cell(void);
     
     
@@ -22,14 +23,14 @@ public:
     void add_spring(Cell * c);
     void add_food(float amount);
     void reset_food(void);
-    ofPoint get_position(void);
-    void set_position(ofPoint new_pos);
+    Vec3f get_position(void);
+    void set_position(Vec3f new_pos);
     float get_food_amount(void);
     float get_roi(void);
-    vector<Cell*>* get_connections(void);
-    vector<Cell*> connections;
-    vector<float> rest_lengths;
-    vector<Cell*> collisions;
+    std::vector<Cell*>* get_connections(void);
+    std::vector<Cell*> connections;
+    std::vector<float> rest_lengths;
+    std::vector<Cell*> collisions;
     
     Cell* split(void);
     
@@ -50,22 +51,24 @@ public:
     int collision_num = 0;
     
     
-    ofPoint get_spring_target(void);
-    vector<Cell*> get_springs(void);
+    Vec3f get_spring_target(void);
+    std::vector<Cell*> get_springs(void);
+    
+/*
     void draw_springs(void);
     void draw_spring_target(float radius);
     void draw_planar_target(void);
     void draw_normal(void);
     void draw_cell(float radius);
     void draw_loop(void);
+*/
     
 private:
-    ofPoint position, original_pos;
-    ofPoint next_position;
-    ofPoint spring_target, planar_target, bulge_target;
-    ofPoint collision_offset;
-    ofPoint cell_normal;
-    ofColor col;
+    Vec3f position, original_pos;
+    Vec3f next_position;
+    Vec3f spring_target, planar_target, bulge_target;
+    Vec3f collision_offset;
+    Vec3f cell_normal;
     
     
     float food = 0;
@@ -91,7 +94,7 @@ private:
     void calculate_collision_offset(void);
     
     void calculate_normal(void);
-    vector<Cell*> get_ordered_neighbors(void);
+    std::vector<Cell*> get_ordered_neighbors(void);
     
 };
 

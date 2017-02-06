@@ -33,6 +33,10 @@ class ofApp : public ofBaseApp{
         void saveButtonPressed(void);
         void setValues(void);
         string getDate(void);
+    
+        void render_simulation(void);
+        void draw_springs(void);
+        void draw_cells(void);
 
         ofEasyCam cam;
         Simulation * sim;

@@ -10,8 +10,6 @@
 #define main_h
 
 #include "ofMain.h"
-#include "grid.h"
-#include "cell.h"
 #include "simulation.h"
 
 #endif /* main_h */

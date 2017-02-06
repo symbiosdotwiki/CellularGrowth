@@ -48,12 +48,9 @@ void ofApp::draw(){
     
     ofSetColor(color);
     
-    if (render_springs) sim->render_springs();
-    if (render_spheres) sim->render_spheres(sphere_size);
-    if (render_boxes) sim->render_boxes();
-    if (render_normals) sim->render_normals();
+    render_simulation();
+
     
-    sim->render_bounding_box();
     
     if (lights) shader.end();
     
@@ -164,6 +161,7 @@ void ofApp::resetButtonPressed(){
 }
 
 void ofApp::saveButtonPressed(){
+    /*
     string s = *sim->point_list();
     
     string file_name = "saved/saved_output_";
@@ -171,6 +169,7 @@ void ofApp::saveButtonPressed(){
     
     ofBuffer msg(s.c_str(), s.length());
     ofBufferToFile(file_name, msg);
+    */
 }
 
 string ofApp::getDate(void){
@@ -181,4 +180,28 @@ string ofApp::getDate(void){
 
 void ofApp::setValues(void){
     sim->set_values(roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength, link_rest_length, food_mode);
+}
+
+void ofApp::render_simulation(void){
+    for (Cell* c : *sim->get_cells()){
+        if (render_spheres){
+            ofFill();
+            Vec3f pos = c->get_position();
+            ofDrawIcoSphere(pos.x, pos.y, pos.z, sphere_size);
+        }
+        if (render_springs){
+            ofSetLineWidth(1);
+            for (Cell* n : *c->get_connections()){
+                Vec3f p1 = c->get_position();
+                Vec3f p2 = n->get_position();
+                ofDrawLine(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+            }
+        }
+    }
+    ofNoFill();
+    ofDrawBox(0,0,0,sim->get_size());
+    
+    //    if (render_boxes) sim->render_boxes();
+    //    if (render_normals) sim->render_normals();
+    
 }

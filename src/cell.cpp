@@ -7,13 +7,13 @@
 
 #include "cell.h"
 
-Cell::Cell(ofPoint _position){
+Cell::Cell(Vec3f _position){
     position = _position;
     original_pos = _position;
     age = 0;
 }
 
-Cell::Cell(ofPoint _position, int _age, ofPoint _cell_normal){
+Cell::Cell(Vec3f _position, int _age, Vec3f _cell_normal){
     // use this constructor when spawning new cells
     position = _position;
     original_pos = _position;
@@ -45,18 +45,14 @@ float Cell::get_roi(void){
     return roi_squared;
 }
 
-vector<Cell*>* Cell::get_connections(void){
+std::vector<Cell*>* Cell::get_connections(void){
     return &connections;
 }
 
 void Cell::calculate_spring_target(void){
-    /*
-     The tendency for linked cells to maintain a constant distance from each other is implemented using a linear spring- like system. The target position for the springs is calculated by taking the average of the rest positions that each link would push the particle to if it were the only influence.
-    */
-    
-    spring_target = ofPoint(0,0,0);
+    spring_target = Vec3f(0,0,0);
     for (Cell * c : connections){
-        ofPoint delta =position - c->get_position();
+        Vec3f delta =position - c->get_position();
         delta.normalize();
         delta*=link_rest_length;
         delta = delta + c->get_position() - position;
@@ -68,11 +64,7 @@ void Cell::calculate_spring_target(void){
 }
 
 void Cell::calculate_planar_target(void){
-    /*
-     The planar target position, which acts similar to a torsion spring, is simply calculated by taking the average of all the positions of directly linked particles. This is designed to have the effect of tending to reduce folds and bumps in the surface, restoring the surface to a local planar state.
-    */
-    
-    planar_target = ofPoint(0,0,0);
+    planar_target = Vec3f(0,0,0);
     for (Cell *c : connections){
         planar_target+= c->position;
     }
@@ -80,13 +72,9 @@ void Cell::calculate_planar_target(void){
 }
 
 void Cell::calculate_bulge_target(void){
-    /*
-     The bulge target position is determined by calculating the distance that each link would have to push the particle outwards along the direction of the surface normal in order to restore the link to its rest length. This is designed to have an effect of tending to bulge the surface outwards in the direction of the normal when links are in compression. The bulge distance due to each link is calculated by a simple application of the cosine formula for triangles, and the average taken for all the links to create the desired overall distance bulgeDist in the direction of the normal. The bulgeTarget vector is then taken by going bulgeDist in the direction of the surface normal from P.
-     */
-    
     bulge_distance = 0;
     for (Cell* c : connections){
-        ofPoint L = c->get_position() - position;
+        Vec3f L = c->get_position() - position;
         // decided to use absolute val
         float tmp = (L - position).dot(cell_normal);
         float dotN = (tmp > 0) ? tmp : 0 ;
@@ -101,8 +89,8 @@ void Cell::calculate_bulge_target(void){
 
 
 void Cell::calculate_collision_offset(void){
-    collision_offset = ofPoint(0,0,0);
-    ofPoint temp;
+    collision_offset = Vec3f(0,0,0);
+    Vec3f temp;
     for (Cell* c : collisions){
         temp = (position-c->get_position()).normalize();
         temp *= (roi_squared - (position - get_position()).lengthSquared())/roi_squared;
@@ -138,10 +126,10 @@ float Cell::get_average_link_len(void){
     return avg;
 }
 
-vector<Cell*> Cell::get_ordered_neighbors(void){
+std::vector<Cell*> Cell::get_ordered_neighbors(void){
     //gotta start somewhere.. hb randomly
-    vector<Cell*> ord_neigh;
-    ord_neigh.push_back(connections[(int) ofRandom(connections.size())]);
+    std::vector<Cell*> ord_neigh;
+    ord_neigh.push_back(connections[(int) range_random(connections.size())]);
     
     Cell* current;
     Cell* previous = this;
@@ -160,9 +148,9 @@ vector<Cell*> Cell::get_ordered_neighbors(void){
 
 void Cell::calculate_normal(void){
 
-    ofPoint temp = ofPoint(0,0,0);
+    Vec3f temp = Vec3f(0,0,0);
     
-    vector<Cell*> loop = get_ordered_neighbors();
+    std::vector<Cell*> loop = get_ordered_neighbors();
     
     Cell * current = loop.front();
     Cell * previous = loop.back();
@@ -170,8 +158,8 @@ void Cell::calculate_normal(void){
     
     for (int i = 0; i < loop.size(); i++){
         // add the normalized cross product
-        ofPoint v1 = (current->get_position() - position);
-        ofPoint v2 = (previous->get_position() - position);
+        Vec3f v1 = (current->get_position() - position);
+        Vec3f v2 = (previous->get_position() - position);
         v1.cross(v2);
         
         v1.normalize();
@@ -215,7 +203,7 @@ Cell* Cell::compute_anchor(Cell* anchor1){
 
 Cell* Cell::split(void){
     reset_food();
-    vector<Cell*> ord_neigh = get_ordered_neighbors();
+    std::vector<Cell*> ord_neigh = get_ordered_neighbors();
     
     Cell* bb = new Cell(position, age, cell_normal);
     
@@ -226,7 +214,7 @@ Cell* Cell::split(void){
     Cell* current= find_next(anchor1, anchor1);
     Cell* previous = anchor1;
     
-    vector<Cell*> loop;
+    std::vector<Cell*> loop;
     while (current != anchor2){
         loop.push_back(current);
         
@@ -257,13 +245,13 @@ Cell* Cell::split(void){
     // How to determine a side?
     // Maybe average connections locations and move half way to that?
     
-    ofPoint average1 = ofPoint(0,0,0);
+    Vec3f average1 = Vec3f(0,0,0);
     for (Cell* c : connections){
         average1 += c->get_position();
     }
     average1 /= connections.size();
     
-    ofPoint average2 = ofPoint(0,0,0);
+    Vec3f average2 = Vec3f(0,0,0);
     for (Cell* c : *bb->get_connections()){
         average2 += c->get_position();
     }
@@ -327,6 +315,8 @@ void Cell::tick(void){
     spread = false;
 }
 
+/*
+
 void Cell::print(void){
     cout << "Current Cell (Age) " + ofToString(age) << endl;
     cout << "Spring Delta: " + ofToString(position.distance(spring_target)) << endl;
@@ -343,23 +333,17 @@ void Cell::draw_springs(void){
 }
 
 void Cell::draw_loop(void){
-    vector<Cell*> loop = get_ordered_neighbors();
+    std::vector<Cell*> loop = get_ordered_neighbors();
     ofSetColor(255, 0, 0);
     ofSetLineWidth(3);
     for (int i = 0; i < loop.size(); i++){
-        ofPoint p1 = loop[i]->get_position();
-        ofPoint p2 = loop[(i+1)%loop.size()]->get_position();
+        Vec3f p1 = loop[i]->get_position();
+        Vec3f p2 = loop[(i+1)%loop.size()]->get_position();
         ofDrawLine(p1, p1+((p2-p1)/(i+1)));
     }
 }
 
-ofPoint Cell::get_spring_target(void){
-    return spring_target;
-}
 
-vector<Cell*> Cell::get_springs(void){
-    return connections;
-}
 
 void Cell::draw_spring_target(float radius){
     ofSetColor(col);
@@ -379,16 +363,27 @@ void Cell::draw_normal(void){
     ofDrawLine(position, position + cell_normal);
     ofPopStyle();
 }
-
+ 
 void Cell::draw_cell(float radius){
     ofFill();
     ofDrawIcoSphere(position, radius);
 }
+ 
+*/
 
-ofPoint Cell::get_position(void){
+Vec3f Cell::get_spring_target(void){
+    return spring_target;
+}
+
+std::vector<Cell*> Cell::get_springs(void){
+    return connections;
+}
+
+
+Vec3f Cell::get_position(void){
     return position;
 }
 
-void Cell::set_position(ofPoint new_pos){
+void Cell::set_position(Vec3f new_pos){
     position = new_pos;
 }
