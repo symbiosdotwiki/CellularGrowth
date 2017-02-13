@@ -42,6 +42,7 @@ public:
     void update(void);
     void update_without_collisions(void);
     void tick(void);
+    void tick(bool move);
     void print(void);
     
     bool dup = false;
@@ -62,13 +63,14 @@ public:
     void draw_cell(float radius);
     void draw_loop(void);
 */
-    
-private:
     Vec3f position, original_pos;
     Vec3f next_position;
     Vec3f spring_target, planar_target, bulge_target;
     Vec3f collision_offset;
     Vec3f cell_normal;
+    
+private:
+
     
     
     float food = 0;
@@ -78,11 +80,14 @@ private:
     float ititial_link_rest_length = 1.0;
     float bulge_distance;
     float roi_squared = .25;
+    float roi = .5;
     
     float spring_factor = 0.01;
     float planar_factor = 0.01;
     float bulge_factor = 0.01;
     float repulsion_strength = 0.1;
+    
+    int neighbors = 0;
     
     Cell* find_next(Cell* current, Cell* previous);
     void remove_spring(Cell* to_remove);

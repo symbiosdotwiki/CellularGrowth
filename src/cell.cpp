@@ -68,7 +68,7 @@ void Cell::calculate_planar_target(void){
     for (Cell *c : connections){
         planar_target+= c->position;
     }
-    planar_target/= connections.size();
+    planar_target /= connections.size();
 }
 
 void Cell::calculate_bulge_target(void){
@@ -89,13 +89,24 @@ void Cell::calculate_bulge_target(void){
 
 
 void Cell::calculate_collision_offset(void){
+    neighbors = collisions.size();
     collision_offset = Vec3f(0,0,0);
     Vec3f temp;
+    float len;
     for (Cell* c : collisions){
-        temp = (position-c->get_position()).normalize();
-        temp *= (roi_squared - (position - get_position()).lengthSquared())/roi_squared;
+        temp = position - c->get_position();
+        len = temp.length();
+        temp.normalize();
+        len = (roi- len)/roi;
+        
+        // triweight!
+        len = (35.0/32.0)*(pow(1.0-pow(len, 2), 3));
+        temp *= len;
         collision_offset += temp;
     }
+    
+    collision_offset /= collisions.size();
+    
     collision_offset *= repulsion_strength;
 }
 
@@ -174,7 +185,7 @@ void Cell::calculate_normal(void){
     
     // on the first frame, point normal away from zero
     if (0 == age){
-        if ((temp+position).lengthSquared() < ((-1*temp)+position).lengthSquared()){
+        if ((temp+position).lengthSquared() < ((-1.0*temp)+position).lengthSquared()){
             temp = -temp;
         }
     } else {
@@ -183,8 +194,14 @@ void Cell::calculate_normal(void){
             temp *= -1.0;
         }
     }
-    if (position.dot(temp) < 0) food = 0;
-                           
+    
+    /*
+    //if (position.dot(temp) < 0) food = 0;
+    if (temp.dot(planar_target) < 0.0){
+        temp = -temp;
+    }
+     */
+    
     cell_normal = temp;
 }
 
@@ -241,7 +258,7 @@ Cell* Cell::split(void){
     anchor1->add_spring(bb);
     anchor2->add_spring(bb);
     
-    // figure better way to set inital point positions...
+    // figure better way to set initial point positions...
     // How to determine a side?
     // Maybe average connections locations and move half way to that?
     
@@ -263,12 +280,15 @@ Cell* Cell::split(void){
     bb->next_position = ((bb->get_position() + average2) /2.0);
     
     bb->link_rest_length = link_rest_length;
+    
+    bb->cell_normal = cell_normal;
     return bb;
 }
 
 void Cell::set_values(float _roi_squared, float _spring_factor, float _bulge_factor, float _planar_factor, float _repulsion_strength, float _link_rest_length){
     link_rest_length = _link_rest_length;
     roi_squared = _roi_squared;
+    roi = sqrt(roi_squared);
     spring_factor = _spring_factor;
     bulge_factor = _bulge_factor;
     repulsion_strength = _repulsion_strength;
@@ -284,11 +304,13 @@ void Cell::update(void){
     calculate_bulge_target();
     calculate_collision_offset();
     
-    next_position = position;
+    next_position = Vec3f(0,0,0);
     next_position += spring_factor * (spring_target - position);
     next_position += planar_factor * (planar_target - position);
     next_position += bulge_factor * (bulge_target - position);
     next_position += collision_offset;
+    
+    next_position += position;
     
     age++;
 }
@@ -309,12 +331,17 @@ void Cell::update_without_collisions(void){
 }
 
 void Cell::tick(void){
-    position = next_position;
+    tick(true);
+}
+
+void Cell::tick(bool move){
+    if (move){
+        position = next_position;
+    }
     food += next_food_delta;
     next_food_delta = 0;
     spread = false;
 }
-
 /*
 
 void Cell::print(void){

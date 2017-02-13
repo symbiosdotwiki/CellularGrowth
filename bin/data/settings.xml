@@ -1,0 +1,21 @@
+<group>
+	<roi_squared>9</roi_squared>
+	<spring_factor>0.14</spring_factor>
+	<bulge_factor>0.05</bulge_factor>
+	<planar_factor>0.835</planar_factor>
+	<repulsion_strength>0.095</repulsion_strength>
+	<split_threshold>42.5</split_threshold>
+	<link_rest_length>3.07</link_rest_length>
+	<food_mode>2</food_mode>
+	<color>0, 0, 98, 255</color>
+	<render_springs>0</render_springs>
+	<render_spheres>1</render_spheres>
+	<render_boxes>0</render_boxes>
+	<render_normals>0</render_normals>
+	<sphere_size>0.15</sphere_size>
+	<lights>0</lights>
+	<depth>0, 1000</depth>
+	<pause>0</pause>
+	<screen_size>1920x1080</screen_size>
+<group/>
+</group>

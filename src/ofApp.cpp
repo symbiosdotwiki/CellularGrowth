@@ -129,13 +129,13 @@ void ofApp::setup_gui(void){
     
     gui.setup(); // most of the time you don't need a name
     
-    gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 3.0));
+    gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 9.0));
     gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 1.0));
     gui.add(bulge_factor.setup("bulge_factor", 0.0 , 0.0, 1.0));
     gui.add(planar_factor.setup("planar_factor", 0.0, 0.0, 1.0));
     gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 1.0));
     gui.add(split_threshold.setup("split_threshold", 100, 0, 500));
-    gui.add(link_rest_length.setup("link_rest_length", 5.0, 1.0, 10.0));
+    gui.add(link_rest_length.setup("link_rest_length", 5.0, 0.1, 10.0));
     gui.add(food_mode.setup("food_mode", 1, 0, 2));
     
 	gui.add(color.setup("color", ofColor(100, 100, 140), ofColor(0, 0), ofColor(255, 255)));
@@ -191,11 +191,18 @@ void ofApp::render_simulation(void){
         }
         if (render_springs){
             ofSetLineWidth(1);
+            ofSetColor(color);
             for (Cell* n : *c->get_connections()){
                 Vec3f p1 = c->get_position();
                 Vec3f p2 = n->get_position();
                 ofDrawLine(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
             }
+        }
+        if (render_normals){
+            ofSetColor(ofColor::red);
+            Vec3f p1 = c->get_position();
+            Vec3f p2 = c->cell_normal + p1;
+            ofDrawLine(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
         }
     }
     ofNoFill();
