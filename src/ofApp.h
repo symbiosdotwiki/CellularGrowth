@@ -37,10 +37,13 @@ class ofApp : public ofBaseApp{
         void render_simulation(void);
         void draw_springs(void);
         void draw_cells(void);
+        void update_mesh(void);
 
         ofEasyCam cam;
         Simulation * sim;
-        ofLight * light;
+        ofMesh m;
+        ofLight areaLight;
+        ofMaterial material;
         ofShader shader;
     
     	bool bHide;

@@ -108,14 +108,6 @@ void Grid::get_coords(int index, int * x, int * y, int * z){
     (*z) *= scale;
 }
 
-bool Grid::in_bounds(Vec3f pos){
-    float d = size/(float)resolution;
-    return  pos.x > -(size/2 + d) and pos.x < (size/2 - d) and
-            pos.y > -(size/2 + d) and pos.y < (size/2 - d) and
-            pos.z > -(size/2 + d) and pos.z < (size/2 - d);
-}
-
-
 /*
 // not working correctly...
 void Grid::draw_boxes(void){

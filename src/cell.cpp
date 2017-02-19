@@ -124,6 +124,7 @@ Cell* Cell::find_next(Cell* current, Cell* previous){
             return d;
         }
     }
+    
     throw 0;
     return NULL;
 }
@@ -190,17 +191,15 @@ void Cell::calculate_normal(void){
         }
     } else {
         if (cell_normal.dot(temp) < 0){
-//        if (position.dot(temp) < 0){
             temp *= -1.0;
         }
     }
     
-    /*
-    //if (position.dot(temp) < 0) food = 0;
+    
     if (temp.dot(planar_target) < 0.0){
-        temp = -temp;
+        temp *= 0.3; //= -temp;
     }
-     */
+    
     
     cell_normal = temp;
 }

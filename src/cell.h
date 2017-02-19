@@ -54,6 +54,7 @@ public:
     
     Vec3f get_spring_target(void);
     std::vector<Cell*> get_springs(void);
+    std::vector<Cell*> get_ordered_neighbors(void);
     
 /*
     void draw_springs(void);
@@ -69,10 +70,15 @@ public:
     Vec3f collision_offset;
     Vec3f cell_normal;
     
+    
 private:
 
+    float   food, age, link_rest_length, initial_link_rest_length,
+            bulge_distance, roi_squared, roi, spring_factor,
+            planar_factor, bulge_factor, repulsion_strength;
     
     
+    /*
     float food = 0;
     float age;
     
@@ -86,6 +92,7 @@ private:
     float planar_factor = 0.01;
     float bulge_factor = 0.01;
     float repulsion_strength = 0.1;
+     */
     
     int neighbors = 0;
     
@@ -99,7 +106,7 @@ private:
     void calculate_collision_offset(void);
     
     void calculate_normal(void);
-    std::vector<Cell*> get_ordered_neighbors(void);
+    
     
 };
 

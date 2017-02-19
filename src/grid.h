@@ -16,7 +16,7 @@ public:
     Grid(int resolution, int size);
     ~Grid(void);
     
-    bool in_bounds(Vec3f pos);
+    bool in_bounds(int b);
     int get_index(int x, int y, int z);
     int get_box(Vec3f p);
     void set_collisions(Cell* c);

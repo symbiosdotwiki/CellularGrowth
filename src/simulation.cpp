@@ -13,7 +13,7 @@ Simulation::Simulation(void){
 }
 
 void Simulation::initialize(void){
-    g = new Grid(120,300);
+    g = new Grid(120,500);
     
     std::vector<Vec3f> icos_vert =  subdivided_icosahedron(2);
     for (Vec3f p : icos_vert){
@@ -27,7 +27,6 @@ void Simulation::initialize(void){
         c->set_position(c->get_position()*5.0);
     }
 }
-
 
 void Simulation::init_springs(float radius){
     for (Cell * c1 : *g->iter()){
@@ -79,7 +78,7 @@ void Simulation::add_food(float amount){
 
 void Simulation::calcification_food(float amount){
     for (Cell* c : *g->iter()){
-        c->add_food(amount / (1.0 + (float) c->collision_num));
+        c->add_food(amount / (1.0 + 10.0*(float) c->collision_num));
     }
 }
 
@@ -87,8 +86,12 @@ void Simulation::update(){
     bool split_this_update = false;
     
     // spread food throughout the system
-    if (CONSTANT == mode) add_food(1.0);
-    else if (BREADTH == mode) spread_food(g->get_head(), 1.0, 0.99);
+    if (CONSTANT == mode){
+		add_food(1.0);
+	}
+    else if (BREADTH == mode){
+		spread_food(g->get_head(), 1.0, 0.99);
+	}
     else if (DENSITY == mode){
         calcification_food(1.0);
     }

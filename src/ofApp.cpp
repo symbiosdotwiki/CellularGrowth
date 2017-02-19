@@ -2,6 +2,23 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+    ofEnableLighting();
+    
+    areaLight.setup();
+    areaLight.enable();
+    areaLight.setAreaLight(120,400);
+    //areaLight.setSpotlight(80,3);
+    areaLight.setAmbientColor(ofFloatColor(0.4,0.4,0.4));
+    areaLight.setAttenuation(1.0,0.0001,0.0001);
+    areaLight.setDiffuseColor(ofFloatColor(1,1,1));
+    areaLight.setSpecularColor(ofFloatColor(1,1,1));
+    areaLight.rotate(-90,ofVec3f(1,0,0));
+    areaLight.setPosition(0,-200,0);
+    material.setAmbientColor(ofFloatColor(0.1,0.1,0.1,1.0));
+    material.setDiffuseColor(ofFloatColor(0.8,0.8,0.8,1.0));
+    material.setSpecularColor(ofFloatColor(0.8,0.8,0.8,1.0));
+    //material.setShininess(10);
+    
     ofSetFrameRate(60);
     ofEnableDepthTest();
     cam.setDistance(100);
@@ -12,11 +29,7 @@ void ofApp::setup(){
     setValues();
   
     time = getDate();
-    
-    light = new ofLight();
-    light->setPointLight();
-    light->setPosition(1000, 1000, 0);
-    
+
     shader.load("shadersGL2/shader");
 }
 
@@ -26,6 +39,8 @@ void ofApp::update(){
         setValues();
         sim->set_split_threshold(split_threshold);
         sim->update();
+        
+        update_mesh();
     }
 }
 
@@ -34,28 +49,32 @@ void ofApp::draw(){
     ofSetWindowTitle("FPS: " + ofToString(ofGetFrameRate()) +
                      " Population: " + ofToString(sim->get_population()));
     
-
+    ofBackgroundGradient(ofColor::black, ofColor::gray);
     
-    ofBackgroundGradient(ofColor::white, ofColor::gray);
-    
-    ofPushStyle();
+    //ofPushStyle();
     cam.begin();
     
-    if (lights) {
-        shader.begin();
-        shader.setUniform2f("clipping", depth->x, depth->y);
-    }
+    ofEnableLighting();
+    areaLight.enable();
+    //areaLight.draw();
+    //shader.begin();
+    //shader.setUniform2f("clipping", depth->x, depth->y);
+    //material.begin();
     
-    ofSetColor(color);
+    ofSetColor(ofColor::white);
     
-    render_simulation();
-
+    //render_simulation();
     
     
-    if (lights) shader.end();
+    m.draw();
+    material.end();
+    areaLight.disable();
+    ofDisableLighting();
+    ofSetColor(ofColor::white);
+    m.drawWireframe();
     
     cam.end();
-    ofPopStyle();
+    //ofPopStyle();
     
     ofDisableDepthTest();
     if(!bHide) gui.draw();
@@ -65,9 +84,9 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-    if (key=='p') pause = !pause ;
-    if (key==' ') sim = new Simulation();
-    if (key=='u') sim->update();
+    if (key =='p') pause = !pause ;
+    if (key ==' ') sim = new Simulation();
+    if (key =='u') sim->update();
     if (key == 'h') bHide = !bHide;
 }
 
@@ -129,7 +148,7 @@ void ofApp::setup_gui(void){
     
     gui.setup(); // most of the time you don't need a name
     
-    gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 9.0));
+    gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 27.0));
     gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 1.0));
     gui.add(bulge_factor.setup("bulge_factor", 0.0 , 0.0, 1.0));
     gui.add(planar_factor.setup("planar_factor", 0.0, 0.0, 1.0));
@@ -161,6 +180,7 @@ void ofApp::resetButtonPressed(){
 }
 
 void ofApp::saveButtonPressed(){
+    m.save("meshes/mesh" +  ofToString(ofGetFrameNum()) + ".ply");
     /*
     string s = *sim->point_list();
     
@@ -185,6 +205,7 @@ void ofApp::setValues(void){
 void ofApp::render_simulation(void){
     for (Cell* c : *sim->get_cells()){
         if (render_spheres){
+            ofSetColor(color);
             ofFill();
             Vec3f pos = c->get_position();
             ofDrawIcoSphere(pos.x, pos.y, pos.z, sphere_size);
@@ -211,4 +232,25 @@ void ofApp::render_simulation(void){
     //    if (render_boxes) sim->render_boxes();
     //    if (render_normals) sim->render_normals();
     
+}
+
+void ofApp::update_mesh(void){
+    m.clear();
+    
+    m.setMode(ofPrimitiveMode::OF_PRIMITIVE_TRIANGLES);
+    Vec3f f, g, h;
+    for (Cell* c: *sim->get_cells()){
+        std::vector<Cell*> loop = c->get_ordered_neighbors();
+        
+        f = c->position;
+        
+        for (int i=0; i<loop.size(); i++){
+            g = loop[i]->position;
+            h = loop[(i+1)%loop.size()]->position;
+            
+            m.addVertex(ofPoint(f.x, f.y, f.z));
+            m.addVertex(ofPoint(g.x, g.y, g.z));
+            m.addVertex(ofPoint(h.x, h.y, h.z));
+        }
+    }
 }

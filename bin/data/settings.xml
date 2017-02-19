@@ -2,10 +2,10 @@
 	<roi_squared>9</roi_squared>
 	<spring_factor>0.14</spring_factor>
 	<bulge_factor>0.05</bulge_factor>
-	<planar_factor>0.835</planar_factor>
-	<repulsion_strength>0.095</repulsion_strength>
-	<split_threshold>42.5</split_threshold>
-	<link_rest_length>3.07</link_rest_length>
+	<planar_factor>0.305</planar_factor>
+	<repulsion_strength>0.24</repulsion_strength>
+	<split_threshold>35</split_threshold>
+	<link_rest_length>2.2285</link_rest_length>
 	<food_mode>2</food_mode>
 	<color>0, 0, 98, 255</color>
 	<render_springs>0</render_springs>
