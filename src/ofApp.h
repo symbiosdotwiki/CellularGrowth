@@ -7,6 +7,15 @@
 #define WIDTH 1920
 #define HEIGHT 1080
 
+#define ROI_SQUARED 9
+#define SPRING_FACTOR 0.14
+#define BULGE_FACTOR 0.05
+#define PLANAR_FACTOR 0.305
+#define REPULSION_STRENGTH 0.24
+#define LINK_REST_LENGTH 2.2
+#define FOOD_MODE 2
+#define SPLIT_THRESHOLD 35
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -31,9 +40,9 @@ class ofApp : public ofBaseApp{
         void setup_gui(void);
     	void resetButtonPressed(void);
         void saveButtonPressed(void);
-        void setValues(void);
         string getDate(void);
     
+        void new_sim(void);
         void render_simulation(void);
         void draw_springs(void);
         void draw_cells(void);
@@ -42,18 +51,17 @@ class ofApp : public ofBaseApp{
         ofEasyCam cam;
         Simulation * sim;
         ofMesh m;
-        ofLight areaLight;
         ofMaterial material;
         ofShader shader;
     
-    	bool bHide;
+        bool bHide, current_mesh;
 
         // gui
-        ofxFloatSlider roi_squared, spring_factor,bulge_factor, planar_factor, repulsion_strength, link_rest_length;
+        ofxFloatSlider roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength, link_rest_length;
         ofxFloatSlider split_threshold;
         ofxIntSlider food_mode;
         ofxColorSlider color;
-        ofxToggle render_springs, render_spheres, render_boxes, render_normals;
+        ofxToggle render_springs, render_spheres, render_boxes, render_normals, render_mesh;
         ofxFloatSlider sphere_size;
     
         ofxToggle lights, pause;

@@ -16,7 +16,7 @@ public:
     Grid(int resolution, int size);
     ~Grid(void);
     
-    bool in_bounds(int b);
+    bool in_bounds(Vec3f pos);
     int get_index(int x, int y, int z);
     int get_box(Vec3f p);
     void set_collisions(Cell* c);
@@ -28,11 +28,8 @@ public:
     int get_bounding_size(void);
     Cell* get_head(void);
     
-//    void draw_boxes(void);
-//    void draw_bounding_box(void);
-    
 private:
-    std::vector<std::vector<Cell*>> grid_cells;
+    std::vector<std::vector<Cell*> > grid_cells;
     std::vector<Cell*> cell_iter;
     void remove_element(int index, Cell* c);
     void get_coords(int index, int *x, int *y, int *z);

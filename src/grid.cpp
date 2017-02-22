@@ -1,4 +1,3 @@
-//
 //  grid.cpp
 //  CellularGrowth
 //
@@ -44,7 +43,7 @@ int Grid::get_box(Vec3f p){
 }
 
 void Grid::get_grid_coords(int index, int* x, int* y, int*z){
-    int scale = size / resolution;
+    //int scale = size / resolution;
     (*x) = (index % resolution);
     (*y) = (((index-(*x)) % (resolution*resolution)) / resolution);
     (*z) = ((index - (*x) - (*y)) / (resolution*resolution));
@@ -108,24 +107,32 @@ void Grid::get_coords(int index, int * x, int * y, int * z){
     (*z) *= scale;
 }
 
-/*
-// not working correctly...
-void Grid::draw_boxes(void){
-    int x, y, z;
-    float offset = (float) (size / (2*resolution)) - (size/2.0);
-    ofNoFill();
-    ofSetLineWidth(.5);
-    for (int i = 0; i < grid_cells.size(); i++){
-        if (grid_cells[i].size()){
-            get_coords(i, &x, &y, &z);
-            ofDrawBox(x + offset, y + offset, z + offset, (float) size / resolution);
-        }
-    }
+bool Grid::in_bounds(Vec3f pos){
+    float d = size/(float)resolution;
+    return  pos.x > -(size/2 + d) and pos.x < (size/2 - d) and
+    pos.y > -(size/2 + d) and pos.y < (size/2 - d) and
+    pos.z > -(size/2 + d) and pos.z < (size/2 - d);
 }
 
-void Grid::draw_bounding_box(void){
-    ofNoFill();
-    ofSetLineWidth(1);
-    ofDrawBox(0, 0, 0, size);
-}
-*/
+
+/*
+ // not working correctly...
+ void Grid::draw_boxes(void){
+ int x, y, z;
+ float offset = (float) (size / (2*resolution)) - (size/2.0);
+ ofNoFill();
+ ofSetLineWidth(.5);
+ for (int i = 0; i < grid_cells.size(); i++){
+ if (grid_cells[i].size()){
+ get_coords(i, &x, &y, &z);
+ ofDrawBox(x + offset, y + offset, z + offset, (float) size / resolution);
+ }
+ }
+ }
+ 
+ void Grid::draw_bounding_box(void){
+ ofNoFill();
+ ofSetLineWidth(1);
+ ofDrawBox(0, 0, 0, size);
+ }
+ */

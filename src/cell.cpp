@@ -11,6 +11,8 @@ Cell::Cell(Vec3f _position){
     position = _position;
     original_pos = _position;
     age = 0;
+    frozen = false;
+    original = true;
 }
 
 Cell::Cell(Vec3f _position, int _age, Vec3f _cell_normal){
@@ -19,6 +21,8 @@ Cell::Cell(Vec3f _position, int _age, Vec3f _cell_normal){
     original_pos = _position;
     age = _age;
     cell_normal = _cell_normal;
+    frozen = false;
+    original = false;
 }
 
 bool Cell::is_connected(Cell* c){
@@ -52,15 +56,14 @@ std::vector<Cell*>* Cell::get_connections(void){
 void Cell::calculate_spring_target(void){
     spring_target = Vec3f(0,0,0);
     for (Cell * c : connections){
-        Vec3f delta =position - c->get_position();
+        Vec3f delta = position - c->get_position();
         delta.normalize();
-        delta*=link_rest_length;
-        delta = delta + c->get_position() - position;
+        delta *= link_rest_length;
+        delta += c->get_position() - position;
         spring_target += delta;
     }
     spring_target /= connections.size();
     spring_target += position;
-    return spring_target;
 }
 
 void Cell::calculate_planar_target(void){
@@ -79,14 +82,20 @@ void Cell::calculate_bulge_target(void){
         float tmp = (L - position).dot(cell_normal);
         float dotN = (tmp > 0) ? tmp : 0 ;
         float radicand = pow(link_rest_length, 2) - pow(L.length(), 2) + pow(dotN, 2);
-        if (radicand < 0.0) radicand = 0;
-
+        if (radicand < 0.0) {radicand = 0;
+        
         bulge_distance += sqrt(radicand) + dotN;
     }
     bulge_distance /= connections.size();
+    
+    /*
+    if (cell_normal.dot(planar_target) < 0.0){
+        bulge_distance *= 0.1;
+    }
+    */
+        
     bulge_target = position + (cell_normal * bulge_distance);
 }
-
 
 void Cell::calculate_collision_offset(void){
     neighbors = collisions.size();
@@ -124,7 +133,6 @@ Cell* Cell::find_next(Cell* current, Cell* previous){
             return d;
         }
     }
-    
     throw 0;
     return NULL;
 }
@@ -138,10 +146,15 @@ float Cell::get_average_link_len(void){
     return avg;
 }
 
-std::vector<Cell*> Cell::get_ordered_neighbors(void){
-    //gotta start somewhere.. hb randomly
-    std::vector<Cell*> ord_neigh;
-    ord_neigh.push_back(connections[(int) range_random(connections.size())]);
+void Cell::set_ordered_neighbors(void){
+    ord_neigh.clear();
+    
+    /* random initialization-- see comments at end for other method */
+    int idx = (int) range_random(connections.size());
+    if (idx == connections.size()){
+        idx--;
+    }
+    ord_neigh.push_back(connections[idx]);
     
     Cell* current;
     Cell* previous = this;
@@ -151,24 +164,44 @@ std::vector<Cell*> Cell::get_ordered_neighbors(void){
         current = find_next(ord_neigh.back(), previous);
         previous = ord_neigh.back();
         ord_neigh.push_back(current);
-        
+        if (ord_neigh.size() > 10000){
+            /* nuh uhhhhh */
+            throw 0;
+        }
     } while (current != ord_neigh.front());
     
+    float max_dist = 0;
+    float len;
+    int idx0;
+    for (int i=0; i<ord_neigh.size()/2+1; i++){
+        int i1 = (i + ord_neigh.size()/2) % ord_neigh.size();
+        len =ord_neigh[i]->position.squareDistance(ord_neigh[i1]->position);
+        if (len > max_dist){
+            idx0 = i;
+            max_dist = len;
+        }
+    }
+    split_begin = idx0;
+     
+    // well rotating gives me a weird bug... but why? have to use an even number?
+
+    //std::rotate(ord_neigh.begin(), ord_neigh.begin()+idx0, ord_neigh.end());
     
-    return ord_neigh;
 }
 
 void Cell::calculate_normal(void){
+    cell_normal.normalize();
+}
 
+/*
+void Cell::calculate_normal(void){
+    set_ordered_neighbors();
     Vec3f temp = Vec3f(0,0,0);
     
-    std::vector<Cell*> loop = get_ordered_neighbors();
+    Cell * current = ord_neigh.front();
+    Cell * previous = ord_neigh.back();
     
-    Cell * current = loop.front();
-    Cell * previous = loop.back();
-    
-    
-    for (int i = 0; i < loop.size(); i++){
+    for (int i = 0; i < ord_neigh.size(); i++){
         // add the normalized cross product
         Vec3f v1 = (current->get_position() - position);
         Vec3f v2 = (previous->get_position() - position);
@@ -177,9 +210,9 @@ void Cell::calculate_normal(void){
         v1.normalize();
         temp += v1;
         
-        if (i + 1 < loop.size()){
-            previous = loop[i];
-            current = loop[i+1];
+        if (i + 1 < ord_neigh.size()){
+            previous = ord_neigh[i];
+            current = ord_neigh[i+1];
         }
     }
     temp.normalize();
@@ -195,14 +228,13 @@ void Cell::calculate_normal(void){
         }
     }
     
-    
-    if (temp.dot(planar_target) < 0.0){
-        temp *= 0.3; //= -temp;
+    if (temp.dot(planar_target) < 0){
+        temp *= 0.1;
     }
-    
     
     cell_normal = temp;
 }
+ */
 
 Cell* Cell::compute_anchor(Cell* anchor1){
     Cell* anchor2;
@@ -219,12 +251,16 @@ Cell* Cell::compute_anchor(Cell* anchor1){
 
 Cell* Cell::split(void){
     reset_food();
-    std::vector<Cell*> ord_neigh = get_ordered_neighbors();
+    set_ordered_neighbors();
+    age = 0;
+    
+    int idx0 = 0;
+    int idx1 = ord_neigh.size()/2;
     
     Cell* bb = new Cell(position, age, cell_normal);
     
-    Cell* anchor1 =ord_neigh[0];
-    Cell* anchor2 =ord_neigh[ord_neigh.size()/2];
+    Cell* anchor1 =ord_neigh[idx0];
+    Cell* anchor2 =ord_neigh[idx1];
     
     // now traverse from one anchor to another
     Cell* current= find_next(anchor1, anchor1);
@@ -274,13 +310,19 @@ Cell* Cell::split(void){
     
     average2 /= bb->get_connections()->size();
     
-    next_position= (position + average1)/2.0;
-                 
-    bb->next_position = ((bb->get_position() + average2) /2.0);
+    //next_position= (position + average1)/2.0;
     
-    bb->link_rest_length = link_rest_length;
+    //bb->next_position = ((bb->get_position() + average2) /2.0);
     
     bb->cell_normal = cell_normal;
+    bb->link_rest_length = link_rest_length;
+    bb->roi_squared = roi_squared;
+    bb->roi = sqrt(roi_squared);
+    bb->spring_factor = spring_factor;
+    bb->bulge_factor = bulge_factor;
+    bb->repulsion_strength = repulsion_strength;
+    bb->planar_factor = planar_factor;
+    
     return bb;
 }
 
@@ -296,8 +338,9 @@ void Cell::set_values(float _roi_squared, float _spring_factor, float _bulge_fac
 
 void Cell::update(void){
     collision_num = collisions.size();
+    //set_ordered_neighbors();
     calculate_normal();
-   
+    
     calculate_spring_target();
     calculate_planar_target();
     calculate_bulge_target();
@@ -307,7 +350,9 @@ void Cell::update(void){
     next_position += spring_factor * (spring_target - position);
     next_position += planar_factor * (planar_target - position);
     next_position += bulge_factor * (bulge_target - position);
-    next_position += collision_offset;
+    next_position += collision_offset; //*std::min(age/10.0, 1.0);
+    
+    //next_position *= 0.4;
     
     next_position += position;
     
@@ -316,7 +361,7 @@ void Cell::update(void){
 
 void Cell::update_without_collisions(void){
     calculate_normal();
-   
+    
     calculate_spring_target();
     calculate_planar_target();
     calculate_bulge_target();
@@ -325,16 +370,11 @@ void Cell::update_without_collisions(void){
     next_position += spring_factor * (spring_target - position);
     next_position += planar_factor * (planar_target - position);
     next_position += bulge_factor * (bulge_target - position);
-    
     age++;
 }
 
 void Cell::tick(void){
-    tick(true);
-}
-
-void Cell::tick(bool move){
-    if (move){
+    if (not frozen){
         position = next_position;
     }
     food += next_food_delta;
@@ -342,60 +382,60 @@ void Cell::tick(bool move){
     spread = false;
 }
 /*
-
-void Cell::print(void){
-    cout << "Current Cell (Age) " + ofToString(age) << endl;
-    cout << "Spring Delta: " + ofToString(position.distance(spring_target)) << endl;
-    cout << "Planar Delta: " + ofToString(position.distance(planar_target)) << endl;
-    cout << "Bulge Delta: " + ofToString(position.distance(bulge_target)) << endl;
-    cout << "Collision Delta: " + ofToString(collision_offset.length()) + "\n" << endl;
-}
-
-void Cell::draw_springs(void){
-    ofSetLineWidth(1);
-    for (Cell * c : connections){
-        ofDrawLine(position, c->position);
-    }
-}
-
-void Cell::draw_loop(void){
-    std::vector<Cell*> loop = get_ordered_neighbors();
-    ofSetColor(255, 0, 0);
-    ofSetLineWidth(3);
-    for (int i = 0; i < loop.size(); i++){
-        Vec3f p1 = loop[i]->get_position();
-        Vec3f p2 = loop[(i+1)%loop.size()]->get_position();
-        ofDrawLine(p1, p1+((p2-p1)/(i+1)));
-    }
-}
-
-
-
-void Cell::draw_spring_target(float radius){
-    ofSetColor(col);
-    ofDrawBox(spring_target, radius);
-}
-
-void Cell::draw_planar_target(void){
-    ofSetColor(col);
-    ofDrawBox(planar_target, 1);
-}
-
-void Cell::draw_normal(void){
-    ofPushStyle();
-    if (position.dot(cell_normal) > 0) ofSetColor(ofColor::black);
-    else (ofSetColor(ofColor::red));
-    ofSetLineWidth(2);
-    ofDrawLine(position, position + cell_normal);
-    ofPopStyle();
-}
  
-void Cell::draw_cell(float radius){
-    ofFill();
-    ofDrawIcoSphere(position, radius);
-}
+ void Cell::print(void){
+ cout << "Current Cell (Age) " + ofToString(age) << endl;
+ cout << "Spring Delta: " + ofToString(position.distance(spring_target)) << endl;
+ cout << "Planar Delta: " + ofToString(position.distance(planar_target)) << endl;
+ cout << "Bulge Delta: " + ofToString(position.distance(bulge_target)) << endl;
+ cout << "Collision Delta: " + ofToString(collision_offset.length()) + "\n" << endl;
+ }
  
-*/
+ void Cell::draw_springs(void){
+ ofSetLineWidth(1);
+ for (Cell * c : connections){
+ ofDrawLine(position, c->position);
+ }
+ }
+ 
+ void Cell::draw_loop(void){
+ std::vector<Cell*> loop = get_ordered_neighbors();
+ ofSetColor(255, 0, 0);
+ ofSetLineWidth(3);
+ for (int i = 0; i < loop.size(); i++){
+ Vec3f p1 = loop[i]->get_position();
+ Vec3f p2 = loop[(i+1)%loop.size()]->get_position();
+ ofDrawLine(p1, p1+((p2-p1)/(i+1)));
+ }
+ }
+ 
+ 
+ 
+ void Cell::draw_spring_target(float radius){
+ ofSetColor(col);
+ ofDrawBox(spring_target, radius);
+ }
+ 
+ void Cell::draw_planar_target(void){
+ ofSetColor(col);
+ ofDrawBox(planar_target, 1);
+ }
+ 
+ void Cell::draw_normal(void){
+ ofPushStyle();
+ if (position.dot(cell_normal) > 0) ofSetColor(ofColor::black);
+ else (ofSetColor(ofColor::red));
+ ofSetLineWidth(2);
+ ofDrawLine(position, position + cell_normal);
+ ofPopStyle();
+ }
+ 
+ void Cell::draw_cell(float radius){
+ ofFill();
+ ofDrawIcoSphere(position, radius);
+ }
+ 
+ */
 
 Vec3f Cell::get_spring_target(void){
     return spring_target;

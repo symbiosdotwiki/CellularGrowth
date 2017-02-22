@@ -2,22 +2,6 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    ofEnableLighting();
-    
-    areaLight.setup();
-    areaLight.enable();
-    areaLight.setAreaLight(120,400);
-    //areaLight.setSpotlight(80,3);
-    areaLight.setAmbientColor(ofFloatColor(0.4,0.4,0.4));
-    areaLight.setAttenuation(1.0,0.0001,0.0001);
-    areaLight.setDiffuseColor(ofFloatColor(1,1,1));
-    areaLight.setSpecularColor(ofFloatColor(1,1,1));
-    areaLight.rotate(-90,ofVec3f(1,0,0));
-    areaLight.setPosition(0,-200,0);
-    material.setAmbientColor(ofFloatColor(0.1,0.1,0.1,1.0));
-    material.setDiffuseColor(ofFloatColor(0.8,0.8,0.8,1.0));
-    material.setSpecularColor(ofFloatColor(0.8,0.8,0.8,1.0));
-    //material.setShininess(10);
     
     ofSetFrameRate(60);
     ofEnableDepthTest();
@@ -25,9 +9,8 @@ void ofApp::setup(){
     
     setup_gui();
     
-    sim = new Simulation();
-    setValues();
-  
+    new_sim();
+    
     time = getDate();
 
     shader.load("shadersGL2/shader");
@@ -35,13 +18,12 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
+    
     if (!pause){
-        setValues();
-        sim->set_split_threshold(split_threshold);
         sim->update();
-        
-        update_mesh();
+        current_mesh = false;
     }
+
 }
 
 //--------------------------------------------------------------
@@ -54,24 +36,33 @@ void ofApp::draw(){
     //ofPushStyle();
     cam.begin();
     
-    ofEnableLighting();
-    areaLight.enable();
-    //areaLight.draw();
-    //shader.begin();
-    //shader.setUniform2f("clipping", depth->x, depth->y);
-    //material.begin();
-    
     ofSetColor(ofColor::white);
     
-    //render_simulation();
+    ofPushMatrix();
+    ofRotate((float)ofGetFrameNum()*0.1, 0, 1, 0);
+    render_simulation();
+
+    /*
+    ofPushStyle();
+    ofFill();
+    ofSetColor(255, 0, 0);
+    
+    for (Face f:sim->faces){
+        Vec3f a = f.a->position;
+        Vec3f b = f.b->position;
+        Vec3f c = f.c->position;
+        
+        Vec3f cross = (a-b).cross(c-b);
+        
+
+        ofDrawTriangle(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+    }
+    ofPopStyle();
+    */
     
     
-    m.draw();
-    material.end();
-    areaLight.disable();
-    ofDisableLighting();
-    ofSetColor(ofColor::white);
-    m.drawWireframe();
+    ofPopMatrix();
+
     
     cam.end();
     //ofPopStyle();
@@ -79,13 +70,25 @@ void ofApp::draw(){
     ofDisableDepthTest();
     if(!bHide) gui.draw();
     ofEnableDepthTest();
+
     
+}
+
+void ofApp::new_sim(void){
+    sim = new Simulation(   roi_squared,
+                            spring_factor,
+                            bulge_factor,
+                            planar_factor,
+                            repulsion_strength,
+                            link_rest_length,
+                            food_mode,
+                            split_threshold);
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
     if (key =='p') pause = !pause ;
-    if (key ==' ') sim = new Simulation();
+    if (key ==' ') new_sim();
     if (key =='u') sim->update();
     if (key == 'h') bHide = !bHide;
 }
@@ -148,20 +151,21 @@ void ofApp::setup_gui(void){
     
     gui.setup(); // most of the time you don't need a name
     
-    gui.add(roi_squared.setup("roi_squared", 0.25, 0.0, 27.0));
-    gui.add(spring_factor.setup("spring_factor", 0.1, 0.0, 1.0));
-    gui.add(bulge_factor.setup("bulge_factor", 0.0 , 0.0, 1.0));
-    gui.add(planar_factor.setup("planar_factor", 0.0, 0.0, 1.0));
-    gui.add(repulsion_strength.setup("repulsion_strength", 0.1, 0, 1.0));
-    gui.add(split_threshold.setup("split_threshold", 100, 0, 500));
-    gui.add(link_rest_length.setup("link_rest_length", 5.0, 0.1, 10.0));
-    gui.add(food_mode.setup("food_mode", 1, 0, 2));
+    gui.add(roi_squared.setup("roi_squared", ROI_SQUARED, 0.0, 27.0));
+    gui.add(spring_factor.setup("spring_factor", SPRING_FACTOR, 0.0, 1.0));
+    gui.add(bulge_factor.setup("bulge_factor", BULGE_FACTOR , 0.0, 1.0));
+    gui.add(planar_factor.setup("planar_factor", PLANAR_FACTOR, 0.0, 1.0));
+    gui.add(repulsion_strength.setup("repulsion_strength", REPULSION_STRENGTH, 0, 1.0));
+    gui.add(split_threshold.setup("split_threshold", SPLIT_THRESHOLD, 1, 150));
+    gui.add(link_rest_length.setup("link_rest_length", LINK_REST_LENGTH, 0.1, 10.0));
+    gui.add(food_mode.setup("food_mode", FOOD_MODE, 0, 4));
     
 	gui.add(color.setup("color", ofColor(100, 100, 140), ofColor(0, 0), ofColor(255, 255)));
     gui.add(render_springs.setup("render_springs", true));
     gui.add(render_spheres.setup("render_spheres", false));
     gui.add(render_boxes.setup("render_boxes", false));
     gui.add(render_normals.setup("render_normals", false));
+    gui.add(render_mesh.setup("render_mesh", false));
     gui.add(sphere_size.setup("sphere_size", 1.0, 0.0, 10));
     
     gui.add(lights.setup("lights", false));
@@ -180,6 +184,7 @@ void ofApp::resetButtonPressed(){
 }
 
 void ofApp::saveButtonPressed(){
+    update_mesh();
     m.save("meshes/mesh" +  ofToString(ofGetFrameNum()) + ".ply");
     /*
     string s = *sim->point_list();
@@ -198,10 +203,6 @@ string ofApp::getDate(void){
     ofToString(ofGetSeconds());
 }
 
-void ofApp::setValues(void){
-    sim->set_values(roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength, link_rest_length, food_mode);
-}
-
 void ofApp::render_simulation(void){
     for (Cell* c : *sim->get_cells()){
         if (render_spheres){
@@ -210,6 +211,8 @@ void ofApp::render_simulation(void){
             Vec3f pos = c->get_position();
             ofDrawIcoSphere(pos.x, pos.y, pos.z, sphere_size);
         }
+        /*
+         // moved this to mesh wireframe
         if (render_springs){
             ofSetLineWidth(1);
             ofSetColor(color);
@@ -219,13 +222,35 @@ void ofApp::render_simulation(void){
                 ofDrawLine(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
             }
         }
+         */
         if (render_normals){
             ofSetColor(ofColor::red);
             Vec3f p1 = c->get_position();
-            Vec3f p2 = c->cell_normal + p1;
+            Vec3f p2 = c->cell_normal.getNormalized() + p1;
             ofDrawLine(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
         }
     }
+    
+    if ((render_mesh or render_springs) and not current_mesh){
+        update_mesh();
+    }
+    
+    if (render_mesh){
+        ofPushStyle();
+        ofSetColor(color);
+        ofFill();
+        m.draw();
+        ofSetColor(ofColor::white);
+        m.drawWireframe();
+        ofPopStyle();
+    }
+    if (render_springs){
+        ofPushStyle();
+        ofSetColor(ofColor::white);
+        m.drawWireframe();
+        ofPopStyle();
+    }
+    
     ofNoFill();
     ofDrawBox(0,0,0,sim->get_size());
     
@@ -236,11 +261,21 @@ void ofApp::render_simulation(void){
 
 void ofApp::update_mesh(void){
     m.clear();
-    
     m.setMode(ofPrimitiveMode::OF_PRIMITIVE_TRIANGLES);
     Vec3f f, g, h;
+    
+    for (Face f : sim->faces){
+        
+        
+        m.addVertex(ofPoint(f.a->position.x, f.a->position.y, f.a->position.z));
+        
+        m.addVertex(ofPoint(f.b->position.x, f.b->position.y, f.b->position.z));
+        m.addVertex(ofPoint(f.c->position.x, f.c->position.y, f.c->position.z));
+    }
+    
+    /*
     for (Cell* c: *sim->get_cells()){
-        std::vector<Cell*> loop = c->get_ordered_neighbors();
+        std::vector<Cell*> loop = c->ord_neigh;
         
         f = c->position;
         
@@ -253,4 +288,5 @@ void ofApp::update_mesh(void){
             m.addVertex(ofPoint(h.x, h.y, h.z));
         }
     }
+     */
 }
