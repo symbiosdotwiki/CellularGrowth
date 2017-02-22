@@ -82,7 +82,9 @@ void Cell::calculate_bulge_target(void){
         float tmp = (L - position).dot(cell_normal);
         float dotN = (tmp > 0) ? tmp : 0 ;
         float radicand = pow(link_rest_length, 2) - pow(L.length(), 2) + pow(dotN, 2);
-        if (radicand < 0.0) {radicand = 0;
+        
+        /* change this... */
+        if (radicand < 0.0) radicand = 0;
         
         bulge_distance += sqrt(radicand) + dotN;
     }
