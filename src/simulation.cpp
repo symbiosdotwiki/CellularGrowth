@@ -239,6 +239,27 @@ void Simulation::face_food(float amount){
     }
 }
 
+void Simulation::set_rd_values(float _feed, float _kill, float _ra, float _rb){
+    feed = _feed;
+    kill = _kill;
+    ra = _ra;
+    rb = _rb;
+}
+
+void Simulation::reaction_diffusion(void){
+    if (g->get_head()->a == 0){
+        g->get_head()->a += 0.01;
+    }
+
+    for (Cell* c: *g->iter()){
+        c->calculate_rd(feed, kill, ra, rb);
+    }
+    for (Cell* c: *g->iter()){
+        c->update_rd();
+        c->add_food(c->a);
+    }
+}
+
 void Simulation::add_food(){
     // spread food throughout the system
     if (CONSTANT == mode){
@@ -258,6 +279,9 @@ void Simulation::add_food(){
     }
     else if (FACE == mode){
         face_food(1.0);
+    }
+    else if (RD == mode){
+        reaction_diffusion();
     }
 }
 

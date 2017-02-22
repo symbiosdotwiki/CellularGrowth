@@ -18,7 +18,7 @@
 #include "grid.h"
 
 enum food_mode_enum {CONSTANT, BREADTH, DENSITY, X_AXIS_DENSITY,
-    PLANAR, FACE};
+    PLANAR, FACE, RD};
 
 class Face {
 public:
@@ -70,6 +70,7 @@ public:
     std::vector<Face> faces;
     void face_helper(void);
     void add_food(void);
+    void set_rd_values(float _feed, float _kill, float _ra, float _rb);
     Cell* farthest;
     
 private:
@@ -80,10 +81,13 @@ private:
     void x_axis_density(float amount);
     void planar(float amount);
     void face_food(float amount);
+    void reaction_diffusion(void);
     void average_positions(void);
     std::vector<Cell*> find_collisions(Cell* c);
     float split_threshold, roi_squared, spring_factor, bulge_factor,
     planar_factor, repulsion_strength, link_rest_length;
+    
+    float feed, kill, ra, rb;
     int frame_num;
     bool equal_food;
     Grid* g;

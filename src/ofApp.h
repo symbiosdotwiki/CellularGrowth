@@ -59,6 +59,7 @@ class ofApp : public ofBaseApp{
 
         // gui
         ofxFloatSlider roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength, link_rest_length;
+        ofxFloatSlider feed, kill, ra, rb;
         ofxFloatSlider split_threshold;
         ofxIntSlider food_mode;
         ofxColorSlider color;

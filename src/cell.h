@@ -12,6 +12,7 @@
 #include "utils.h"
 #include <math.h>
 #include <vector>
+#include <algorithm>
 
 class Cell {
 public:
@@ -72,20 +73,21 @@ public:
     bulge_distance, roi_squared, roi, spring_factor,
     planar_factor, bulge_factor, repulsion_strength;
     
+    float prev_a, prev_b, a, b, next_a, next_b;
+    
     void calculate_spring_target(void);
     void calculate_planar_target(void);
     void calculate_bulge_target(void);
     void calculate_collision_offset(void);
-    
     void calculate_normal(void);
     
-    
+    void calculate_rd(float feed, float kill, float ra, float rb);
+    void update_rd(void);
     
 private:
     float food;
     int neighbors;
-    
-    
+    void init_values(void);
     void remove_spring(Cell* to_remove);
     float get_average_link_len(void);
     Cell* compute_anchor(Cell* anchor1);

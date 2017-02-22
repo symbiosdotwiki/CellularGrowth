@@ -11,8 +11,7 @@ Cell::Cell(Vec3f _position){
     position = _position;
     original_pos = _position;
     age = 0;
-    frozen = false;
-    original = true;
+    init_values();
 }
 
 Cell::Cell(Vec3f _position, int _age, Vec3f _cell_normal){
@@ -21,8 +20,18 @@ Cell::Cell(Vec3f _position, int _age, Vec3f _cell_normal){
     original_pos = _position;
     age = _age;
     cell_normal = _cell_normal;
+    init_values();
+}
+
+void Cell::init_values(void){
     frozen = false;
     original = false;
+    prev_a = 0;
+    prev_b = 0;
+    a = 0;
+    b = 0;
+    next_a = 0;
+    next_b = 0;
 }
 
 bool Cell::is_connected(Cell* c){
@@ -51,6 +60,44 @@ float Cell::get_roi(void){
 
 std::vector<Cell*>* Cell::get_connections(void){
     return &connections;
+}
+
+void Cell::calculate_rd(float feed, float kill, float ra, float rb){
+    float laplacian_a(0), laplacian_b(0);
+    
+    for (Cell* c: connections){
+        laplacian_a += c->a;
+        laplacian_b += c->b;
+    }
+    laplacian_a /= connections.size();
+    laplacian_b /= connections.size();
+    
+    float da = ra*(laplacian_a-a) - (a*b*b) + feed*(1.0-a);
+    float db = rb*(laplacian_b-b) + (a*b*b) - (kill+feed)*b;
+    
+    next_a = da + a;
+    next_b = db + b;
+    
+    if (next_a < 0) next_a = 0;
+    if (next_a > 1) next_a = 1;
+    if (next_b < 0) next_b = 0;
+    if (next_b > 1) next_b = 1;
+    
+    /*
+    std::cout << laplacian_a << " " << laplacian_b << " " << std::endl;
+    std::cout << feed << " " << kill << " " << ra << " " << rb << std::endl;
+    std::cout << prev_a << " " << prev_b << std::endl;
+    std::cout << a << " " << b << std::endl;
+    std::cout << next_a << " " << next_b << std::endl;
+    */
+}
+
+void Cell::update_rd(void){
+    prev_a = a;
+    prev_b = b;
+    a = next_a;
+    b = next_b;
+    
 }
 
 void Cell::calculate_spring_target(void){
@@ -341,6 +388,9 @@ Cell* Cell::split(void){
     
     average2 /= bb->get_connections()->size();
     
+    a = 0;
+    b = 0;
+    
     //next_position= (position + average1)/2.0;
     
     //bb->next_position = ((bb->get_position() + average2) /2.0);
@@ -353,6 +403,7 @@ Cell* Cell::split(void){
     bb->bulge_factor = bulge_factor;
     bb->repulsion_strength = repulsion_strength;
     bb->planar_factor = planar_factor;
+    
     
     return bb;
 }

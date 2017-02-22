@@ -22,6 +22,7 @@ void ofApp::setup(){
 void ofApp::update(){
     
     if (!pause){
+        sim->set_rd_values(feed, kill, ra, rb);
         sim->update();
         current_mesh = false;
         rotation += 0.1;
@@ -162,7 +163,12 @@ void ofApp::setup_gui(void){
     gui.add(repulsion_strength.setup("repulsion_strength", REPULSION_STRENGTH, 0, 1.0));
     gui.add(split_threshold.setup("split_threshold", SPLIT_THRESHOLD, 1, 500));
     gui.add(link_rest_length.setup("link_rest_length", LINK_REST_LENGTH, 0.1, 10.0));
-    gui.add(food_mode.setup("food_mode", FOOD_MODE, 0, 5));
+    gui.add(food_mode.setup("food_mode", FOOD_MODE, 0, 6));
+    
+    gui.add(feed.setup("feed", 0.0, 0.0, 0.1));
+    gui.add(kill.setup("kill", 0.0, 0.0, 1.0));
+    gui.add(ra.setup("ra", 0.25, 0.0, 0.5));
+    gui.add(rb.setup("rb", 0.04, 0.0, 0.1));
     
 	gui.add(color.setup("color", ofColor(100, 100, 140), ofColor(0, 0), ofColor(255, 255)));
     gui.add(render_springs.setup("render_springs", true));
@@ -210,10 +216,13 @@ string ofApp::getDate(void){
 void ofApp::render_simulation(void){
     for (Cell* c : *sim->get_cells()){
         if (render_spheres){
-            ofSetColor(color);
+            ofPushStyle();
+            //ofSetColor(color);
+            ofSetColor(ofColor(255.0* c->a, 255.0*c->b, 0));
             ofFill();
             Vec3f pos = c->get_position();
             ofDrawIcoSphere(pos.x, pos.y, pos.z, sphere_size);
+            ofPopStyle();
         }
         /*
          // moved this to mesh wireframe
@@ -267,31 +276,13 @@ void ofApp::render_simulation(void){
 void ofApp::update_mesh(void){
     m.clear();
     m.setMode(ofPrimitiveMode::OF_PRIMITIVE_TRIANGLES);
-    Vec3f f, g, h;
     
     for (Face f : sim->faces){
-        
-        
         m.addVertex(ofPoint(f.a->position.x, f.a->position.y, f.a->position.z));
-        
+        m.addColor(ofColor(255.0*f.a->a));
         m.addVertex(ofPoint(f.b->position.x, f.b->position.y, f.b->position.z));
+        m.addColor(ofColor(255.0*f.b->a));
         m.addVertex(ofPoint(f.c->position.x, f.c->position.y, f.c->position.z));
+        m.addColor(ofColor(255.0*f.c->a));
     }
-    
-    /*
-    for (Cell* c: *sim->get_cells()){
-        std::vector<Cell*> loop = c->ord_neigh;
-        
-        f = c->position;
-        
-        for (int i=0; i<loop.size(); i++){
-            g = loop[i]->position;
-            h = loop[(i+1)%loop.size()]->position;
-            
-            m.addVertex(ofPoint(f.x, f.y, f.z));
-            m.addVertex(ofPoint(g.x, g.y, g.z));
-            m.addVertex(ofPoint(h.x, h.y, h.z));
-        }
-    }
-     */
 }
