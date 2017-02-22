@@ -10,6 +10,7 @@
 #define cell_h
 
 #include "utils.h"
+#include <math.h>
 #include <vector>
 
 class Cell {

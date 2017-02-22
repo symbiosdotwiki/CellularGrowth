@@ -24,7 +24,7 @@ Simulation::Simulation(float _roi_squared, float _spring_factor,
 }
 
 void Simulation::initialize(void){
-    g = new Grid(120,500);
+    g = new Grid(80,240);
     
     frame_num = 0;
     std::vector<Vec3f> icos_vert =  subdivided_icosahedron(2);
@@ -198,7 +198,7 @@ void Simulation::spread_food(Cell* c, float amount, float decay){
 
 void Simulation::add_food(float amount){
     for (Cell* c : *g->iter()){
-        c->add_food(range_random(amount));
+        c->add_food(amount);
     }
 }
 
@@ -231,6 +231,14 @@ void Simulation::planar(float amount){
     }
 }
 
+void Simulation::face_food(float amount){
+    for (Face f : faces){
+        f.a->add_food(f.area);
+        f.b->add_food(f.area);
+        f.c->add_food(f.area);
+    }
+}
+
 void Simulation::add_food(){
     // spread food throughout the system
     if (CONSTANT == mode){
@@ -247,6 +255,9 @@ void Simulation::add_food(){
     }
     else if (PLANAR == mode){
         planar(1.0);
+    }
+    else if (FACE == mode){
+        face_food(1.0);
     }
 }
 

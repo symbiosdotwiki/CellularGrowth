@@ -14,6 +14,8 @@ void ofApp::setup(){
     time = getDate();
 
     shader.load("shadersGL2/shader");
+    
+    rotation = 0;
 }
 
 //--------------------------------------------------------------
@@ -22,6 +24,7 @@ void ofApp::update(){
     if (!pause){
         sim->update();
         current_mesh = false;
+        rotation += 0.1;
     }
 
 }
@@ -39,7 +42,7 @@ void ofApp::draw(){
     ofSetColor(ofColor::white);
     
     ofPushMatrix();
-    ofRotate((float)ofGetFrameNum()*0.1, 0, 1, 0);
+    ofRotate(rotation, 0, 1, 0);
     render_simulation();
 
     /*
@@ -66,6 +69,7 @@ void ofApp::draw(){
     
     cam.end();
     //ofPopStyle();
+    
     
     ofDisableDepthTest();
     if(!bHide) gui.draw();
@@ -156,9 +160,9 @@ void ofApp::setup_gui(void){
     gui.add(bulge_factor.setup("bulge_factor", BULGE_FACTOR , 0.0, 1.0));
     gui.add(planar_factor.setup("planar_factor", PLANAR_FACTOR, 0.0, 1.0));
     gui.add(repulsion_strength.setup("repulsion_strength", REPULSION_STRENGTH, 0, 1.0));
-    gui.add(split_threshold.setup("split_threshold", SPLIT_THRESHOLD, 1, 150));
+    gui.add(split_threshold.setup("split_threshold", SPLIT_THRESHOLD, 1, 500));
     gui.add(link_rest_length.setup("link_rest_length", LINK_REST_LENGTH, 0.1, 10.0));
-    gui.add(food_mode.setup("food_mode", FOOD_MODE, 0, 4));
+    gui.add(food_mode.setup("food_mode", FOOD_MODE, 0, 5));
     
 	gui.add(color.setup("color", ofColor(100, 100, 140), ofColor(0, 0), ofColor(255, 255)));
     gui.add(render_springs.setup("render_springs", true));
@@ -227,6 +231,7 @@ void ofApp::render_simulation(void){
             ofSetColor(ofColor::red);
             Vec3f p1 = c->get_position();
             Vec3f p2 = c->cell_normal.getNormalized() + p1;
+            //Vec3f p2 = c->bulge_target;
             ofDrawLine(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
         }
     }

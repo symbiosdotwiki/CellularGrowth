@@ -74,6 +74,7 @@ void Cell::calculate_planar_target(void){
     planar_target /= connections.size();
 }
 
+/*
 void Cell::calculate_bulge_target(void){
     bulge_distance = 0;
     for (Cell* c : connections){
@@ -83,19 +84,47 @@ void Cell::calculate_bulge_target(void){
         float dotN = (tmp > 0) ? tmp : 0 ;
         float radicand = pow(link_rest_length, 2) - pow(L.length(), 2) + pow(dotN, 2);
         
-        /* change this... */
         if (radicand < 0.0) radicand = 0;
         
         bulge_distance += sqrt(radicand) + dotN;
     }
     bulge_distance /= connections.size();
     
-    /*
-    if (cell_normal.dot(planar_target) < 0.0){
-        bulge_distance *= 0.1;
-    }
-    */
+
+    bulge_target = position + (cell_normal * bulge_distance);
+}
+*/
+
+void Cell::calculate_bulge_target(void){
+    bulge_distance = 0;
+    float theta_l, theta_d, theta_c, radicand;
+    for (Cell* c : connections){
+        Vec3f d = c->get_position() - position;
+        theta_l = acos(d.dot(cell_normal)/d.length());
+        theta_d = asin(d.length()*sin(theta_l)/link_rest_length);
+        theta_c = M_PI - theta_d - theta_l;
         
+        if (std::isnan(theta_c)){
+            continue;
+        }
+        
+        //std::cout<<theta_l<<" "<<theta_d<<" "<<theta_c<<std::endl;
+        
+        radicand = pow(link_rest_length, 2) + d.lengthSquared() -
+                    2.0 * d.length() * link_rest_length * cos(theta_c);
+        if (radicand < 0.0){
+            radicand = 0;
+        }
+        
+        bulge_distance += sqrt(radicand);
+    }
+    
+    
+    bulge_distance /= connections.size();
+    
+    //std::cout << bulge_distance << std::endl;
+    //std::cout << connections.size() << std::endl;
+    
     bulge_target = position + (cell_normal * bulge_distance);
 }
 

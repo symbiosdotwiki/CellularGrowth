@@ -18,12 +18,13 @@
 #include "grid.h"
 
 enum food_mode_enum {CONSTANT, BREADTH, DENSITY, X_AXIS_DENSITY,
-    PLANAR};
+    PLANAR, FACE};
 
 class Face {
 public:
     Cell *a, *b, *c;
     Vec3f normal;
+    float area;
     
     Face(Cell* _a, Cell* _b, Cell* _c){
         a = _a;
@@ -31,6 +32,7 @@ public:
         c = _c;
         
         normal = (a->position-b->position).cross(c->position-b->position);
+        area = 0.5 * normal.length();
         normal.normalize();
     }
     
@@ -77,6 +79,7 @@ private:
     void calcification_food(float amount);
     void x_axis_density(float amount);
     void planar(float amount);
+    void face_food(float amount);
     void average_positions(void);
     std::vector<Cell*> find_collisions(Cell* c);
     float split_threshold, roi_squared, spring_factor, bulge_factor,

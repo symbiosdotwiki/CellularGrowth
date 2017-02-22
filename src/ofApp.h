@@ -55,6 +55,7 @@ class ofApp : public ofBaseApp{
         ofShader shader;
     
         bool bHide, current_mesh;
+        float rotation;
 
         // gui
         ofxFloatSlider roi_squared, spring_factor, bulge_factor, planar_factor, repulsion_strength, link_rest_length;
