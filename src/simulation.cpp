@@ -24,7 +24,7 @@ Simulation::Simulation(float _roi_squared, float _spring_factor,
 }
 
 void Simulation::initialize(void){
-    g = new Grid(80,240);
+    g = new Grid(50,100);
     
     frame_num = 0;
     std::vector<Vec3f> icos_vert =  subdivided_icosahedron(2);
@@ -48,13 +48,23 @@ void Simulation::initialize(void){
 
 void Simulation::update_faces(void){
     
+    
+    float len, max_mag;
+    
+
     for (Cell* c: *g->iter()){
         c->visited = false;
         c->set_ordered_neighbors();
         c->cell_normal.zero();
+        c->face_area = 0;
+        len = c->position.lengthSquared();
+        if (len > max_mag){
+            farthest = c;
+            max_mag = len;
+        }
     }
     
-    faces.clear();
+    face_set.clear();
     
     std::deque<Face> f_queue;
     
@@ -75,11 +85,15 @@ void Simulation::update_faces(void){
     
     for (int i=0; i<neigh.size(); i++){
         Face f(farthest, neigh[i], neigh[(i+1)%neigh.size()]);
-        faces.push_back(f);
+        face_set.insert(f);
         f_queue.push_back(f);
     }
     
     farthest->visited = true;
+    
+    for (Cell* c : *g->iter()){
+        
+    }
     
     while (not f_queue.empty()){
         Face f = f_queue.front();
@@ -93,65 +107,33 @@ void Simulation::update_faces(void){
             
             int counter = 0;
             
-            while (not next->visited){
+            while (next != f.a){
                 Face g(f.c, b, next);
-                faces.push_back(g);
-                f_queue.push_front(g);
+                face_set.insert(g);
+                f_queue.push_back(g);
                 a = b;
                 b = next;
                 next = f.c->find_next(b, a);
                 counter++;
             }
-            
-            /*
-            Face test (f.c, b, next);
-            bool flag = false;
-            for (Face h : faces){
-                if (h.is_equal(test)){
-                    flag = true;
-                    break;
-                }
-            }
-            if (not flag){
-                faces.push_back(test);
-            }
-             */
-            
-            /*
-            if (counter == 0){
-                std::vector<Cell*> neigh = f.c->get_ordered_neighbors();
-                
-                for (int i=0; i<neigh.size(); i++){
-                    Face fdsa(f.c, neigh[i], neigh[(i+1)%neigh.size()]);
-                    
-                    bool flag = false;
-                    for (Face asdf : faces){
-                        if (fdsa.is_equal(asdf)){
-                            flag = true;
-                            break;
-                        }
-                    }
-                    if (not flag){
-                        faces.push_back(fdsa);
-                    }
-                }
-                
-            }
-             */
-            
+           
             f.c->visited = true;
         }
     }
     
-    
-    for (Face f:faces){
+    std::set<Face>::iterator it;
+    for (it = face_set.begin(); it != face_set.end(); ++it){
+        const Face f = (*it);
         f.a->cell_normal += f.normal;
         f.b->cell_normal += f.normal;
         f.c->cell_normal += f.normal;
         
+        f.a->face_area += f.area;
+        f.b->face_area += f.area;
+        f.c->face_area += f.area;
     }
     
-    printf("%d\n", (int)faces.size());
+    //printf("%d\n", (int)faces.size());
 }
 
 void Simulation::init_springs(float radius){
@@ -232,7 +214,9 @@ void Simulation::planar(float amount){
 }
 
 void Simulation::face_food(float amount){
-    for (Face f : faces){
+    std::set<Face>::iterator it;
+    for (it = face_set.begin(); it != face_set.end(); ++it){
+        Face f = (*it);
         f.a->add_food(f.area);
         f.b->add_food(f.area);
         f.c->add_food(f.area);
@@ -248,15 +232,35 @@ void Simulation::set_rd_values(float _feed, float _kill, float _ra, float _rb){
 
 void Simulation::reaction_diffusion(void){
     if (g->get_head()->a == 0){
-        g->get_head()->a += 0.01;
+        g->get_head()->a = 0.001;
     }
+    
+    /*
+    for (Cell* c: *g->iter()){
+        c->face_area = 0;
+    }
+     */
+    
+    /*
+    for (Face f : faces){
+        f.a->face_area+=f.area;
+        f.b->face_area+=f.area;
+        f.c->face_area+=f.area;
+    }
+     */
 
     for (Cell* c: *g->iter()){
         c->calculate_rd(feed, kill, ra, rb);
     }
     for (Cell* c: *g->iter()){
         c->update_rd();
-        c->add_food(c->a);
+        c->add_food(c->a*c->face_area);
+        
+        /*
+        if (c->a > 0.9){
+            c->food = split_threshold+1.0;
+        }
+         */
     }
 }
 
@@ -288,6 +292,7 @@ void Simulation::add_food(){
 void Simulation::update(){
     
     average_positions();
+    
     update_faces();
     
     add_food();
@@ -295,7 +300,11 @@ void Simulation::update(){
     
     // update collisions and check if there are splits
     bool split_this_update = false;
+    int max_degree = 0;
     for (Cell * c : *g->iter()){
+        if (c->get_connections()->size() > max_degree){
+            max_degree = c->get_connections()->size();
+        }
         if (roi_squared > 0){
             g->set_collisions(c);
             c->update();
@@ -307,6 +316,10 @@ void Simulation::update(){
             split_this_update = true;
         }
     }
+    
+    
+    
+    std::cout << max_degree << std::endl;
     
     std::vector<Cell *> new_cells;
     if (split_this_update){
@@ -338,13 +351,10 @@ void Simulation::update(){
     
     g->update_positions();
     
-    
     frame_num += 1;
 }
 
 void Simulation::average_positions(void){
-    float max_mag = 0;
-    
     Vec3f average = Vec3f(0,0,0);
     for (Cell* c: *g->iter()){
         average += c->get_position();
@@ -352,14 +362,8 @@ void Simulation::average_positions(void){
     
     average /= g->get_size();
     
-    float len;
     for (Cell* c : *g->iter()){
         c->set_position(c->get_position() - average);
-        len = c->position.lengthSquared();
-        if (len > max_mag){
-            farthest = c;
-            max_mag = len;
-        }
     }
 }
 

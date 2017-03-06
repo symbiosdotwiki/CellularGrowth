@@ -66,8 +66,8 @@ void Cell::calculate_rd(float feed, float kill, float ra, float rb){
     float laplacian_a(0), laplacian_b(0);
     
     for (Cell* c: connections){
-        laplacian_a += c->a;
-        laplacian_b += c->b;
+        laplacian_a += c->a;// * c->face_area;
+        laplacian_b += c->b;// * c->face_area;
     }
     laplacian_a /= connections.size();
     laplacian_b /= connections.size();
@@ -75,6 +75,7 @@ void Cell::calculate_rd(float feed, float kill, float ra, float rb){
     float da = ra*(laplacian_a-a) - (a*b*b) + feed*(1.0-a);
     float db = rb*(laplacian_b-b) + (a*b*b) - (kill+feed)*b;
     
+    //da *= face_area;
     next_a = da + a;
     next_b = db + b;
     
@@ -121,27 +122,6 @@ void Cell::calculate_planar_target(void){
     planar_target /= connections.size();
 }
 
-/*
-void Cell::calculate_bulge_target(void){
-    bulge_distance = 0;
-    for (Cell* c : connections){
-        Vec3f L = c->get_position() - position;
-        // decided to use absolute val
-        float tmp = (L - position).dot(cell_normal);
-        float dotN = (tmp > 0) ? tmp : 0 ;
-        float radicand = pow(link_rest_length, 2) - pow(L.length(), 2) + pow(dotN, 2);
-        
-        if (radicand < 0.0) radicand = 0;
-        
-        bulge_distance += sqrt(radicand) + dotN;
-    }
-    bulge_distance /= connections.size();
-    
-
-    bulge_target = position + (cell_normal * bulge_distance);
-}
-*/
-
 void Cell::calculate_bulge_target(void){
     bulge_distance = 0;
     float theta_l, theta_d, theta_c, radicand;
@@ -181,6 +161,7 @@ void Cell::calculate_collision_offset(void){
     Vec3f temp;
     float len;
     for (Cell* c : collisions){
+        /*
         temp = position - c->get_position();
         len = temp.length();
         temp.normalize();
@@ -190,6 +171,11 @@ void Cell::calculate_collision_offset(void){
         len = (35.0/32.0)*(pow(1.0-pow(len, 2), 3));
         temp *= len;
         collision_offset += temp;
+         */
+        temp = (position-c->get_position()).normalize();
+        temp *= (roi_squared - (position - c->get_position()).lengthSquared())/roi_squared;
+        collision_offset += temp;
+        
     }
     
     collision_offset /= collisions.size();
@@ -271,48 +257,6 @@ void Cell::calculate_normal(void){
     cell_normal.normalize();
 }
 
-/*
-void Cell::calculate_normal(void){
-    set_ordered_neighbors();
-    Vec3f temp = Vec3f(0,0,0);
-    
-    Cell * current = ord_neigh.front();
-    Cell * previous = ord_neigh.back();
-    
-    for (int i = 0; i < ord_neigh.size(); i++){
-        // add the normalized cross product
-        Vec3f v1 = (current->get_position() - position);
-        Vec3f v2 = (previous->get_position() - position);
-        v1.cross(v2);
-        
-        v1.normalize();
-        temp += v1;
-        
-        if (i + 1 < ord_neigh.size()){
-            previous = ord_neigh[i];
-            current = ord_neigh[i+1];
-        }
-    }
-    temp.normalize();
-    
-    // on the first frame, point normal away from zero
-    if (0 == age){
-        if ((temp+position).lengthSquared() < ((-1.0*temp)+position).lengthSquared()){
-            temp = -temp;
-        }
-    } else {
-        if (cell_normal.dot(temp) < 0){
-            temp *= -1.0;
-        }
-    }
-    
-    if (temp.dot(planar_target) < 0){
-        temp *= 0.1;
-    }
-    
-    cell_normal = temp;
-}
- */
 
 Cell* Cell::compute_anchor(Cell* anchor1){
     Cell* anchor2;

@@ -51,6 +51,7 @@ public:
     bool original;
     float next_food_delta;
     float spring_decay_rate;
+    float face_area;
     int collision_num;
     int split_begin;
     
@@ -68,6 +69,7 @@ public:
     std::vector<Cell*> ord_neigh;
     
     float age;
+    float food;
     
     float link_rest_length, ititial_link_rest_length,
     bulge_distance, roi_squared, roi, spring_factor,
@@ -85,7 +87,6 @@ public:
     void update_rd(void);
     
 private:
-    float food;
     int neighbors;
     void init_values(void);
     void remove_spring(Cell* to_remove);

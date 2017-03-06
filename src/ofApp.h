@@ -63,7 +63,7 @@ class ofApp : public ofBaseApp{
         ofxFloatSlider split_threshold;
         ofxIntSlider food_mode;
         ofxColorSlider color;
-        ofxToggle render_springs, render_spheres, render_boxes, render_normals, render_mesh;
+        ofxToggle render_springs, render_spheres, render_boxes, render_normals, render_mesh, mesh_color;
         ofxFloatSlider sphere_size;
     
         ofxToggle lights, pause;

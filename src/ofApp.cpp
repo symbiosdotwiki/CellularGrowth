@@ -46,27 +46,7 @@ void ofApp::draw(){
     ofRotate(rotation, 0, 1, 0);
     render_simulation();
 
-    /*
-    ofPushStyle();
-    ofFill();
-    ofSetColor(255, 0, 0);
-    
-    for (Face f:sim->faces){
-        Vec3f a = f.a->position;
-        Vec3f b = f.b->position;
-        Vec3f c = f.c->position;
-        
-        Vec3f cross = (a-b).cross(c-b);
-        
-
-        ofDrawTriangle(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
-    }
-    ofPopStyle();
-    */
-    
-    
     ofPopMatrix();
-
     
     cam.end();
     //ofPopStyle();
@@ -176,6 +156,7 @@ void ofApp::setup_gui(void){
     gui.add(render_boxes.setup("render_boxes", false));
     gui.add(render_normals.setup("render_normals", false));
     gui.add(render_mesh.setup("render_mesh", false));
+    gui.add(mesh_color.setup("mesh_color", false));
     gui.add(sphere_size.setup("sphere_size", 1.0, 0.0, 10));
     
     gui.add(lights.setup("lights", false));
@@ -270,19 +251,28 @@ void ofApp::render_simulation(void){
     
     //    if (render_boxes) sim->render_boxes();
     //    if (render_normals) sim->render_normals();
-    
 }
 
 void ofApp::update_mesh(void){
     m.clear();
     m.setMode(ofPrimitiveMode::OF_PRIMITIVE_TRIANGLES);
     
-    for (Face f : sim->faces){
+    std::set<Face>::iterator it;
+    for (it = sim->face_set.begin(); it != sim->face_set.end(); ++it){
+        const Face f = (*it);
         m.addVertex(ofPoint(f.a->position.x, f.a->position.y, f.a->position.z));
-        m.addColor(ofColor(255.0*f.a->a));
+        if (mesh_color){
+            m.addColor(ofColor(255.0*f.a->a, 255.0*(1.0-(f.a->a/f.a->b)), 255.0*f.a->b));
+        }
+        
         m.addVertex(ofPoint(f.b->position.x, f.b->position.y, f.b->position.z));
-        m.addColor(ofColor(255.0*f.b->a));
+        if (mesh_color){
+            m.addColor(ofColor(255.0*f.b->a, 255.0*(1.0-(f.b->a/f.b->b)), 255.0*f.b->b));
+        }
+        
         m.addVertex(ofPoint(f.c->position.x, f.c->position.y, f.c->position.z));
-        m.addColor(ofColor(255.0*f.c->a));
+        if (mesh_color){
+            m.addColor(ofColor(255.0*f.c->a, 255.0*(1.0-(f.c->a/f.c->b)), 255.0*f.c->b));
+        }
     }
 }

@@ -1,26 +1,27 @@
 <group>
-	<roi_squared>3.645</roi_squared>
-	<spring_factor>0.09</spring_factor>
-	<bulge_factor>0.035</bulge_factor>
-	<planar_factor>0.905</planar_factor>
-	<repulsion_strength>0.07</repulsion_strength>
-	<split_threshold>115.77</split_threshold>
-	<link_rest_length>2.179</link_rest_length>
-	<food_mode>6</food_mode>
+	<roi_squared>3.78</roi_squared>
+	<spring_factor>0.375</spring_factor>
+	<bulge_factor>0</bulge_factor>
+	<planar_factor>1</planar_factor>
+	<repulsion_strength>0.33</repulsion_strength>
+	<split_threshold>1</split_threshold>
+	<link_rest_length>0.1</link_rest_length>
+	<food_mode>4</food_mode>
 	<color>0, 161, 0, 255</color>
 	<render_springs>0</render_springs>
 	<render_spheres>0</render_spheres>
 	<render_boxes>0</render_boxes>
 	<render_normals>0</render_normals>
-	<sphere_size>0.6</sphere_size>
+	<sphere_size>0.4</sphere_size>
 	<lights>0</lights>
 	<depth>0, 1000</depth>
 	<pause>0</pause>
 	<screen_size>1920x1080</screen_size>
 <group/>
 <render_mesh>1</render_mesh>
-<feed>0.0045</feed>
+<feed>0.012</feed>
 	<kill>0.61</kill>
-	<ra>0.2475</ra>
+	<ra>0.035</ra>
 	<rb>0.04</rb>
+<mesh_color>0</mesh_color>
 </group>

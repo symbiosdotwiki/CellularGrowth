@@ -10,9 +10,11 @@
 
 #include <vector>
 #include <deque>
+#include <set>
 #include <math.h>
 #include <algorithm>
 #include <fstream>
+#include <tuple>
 #include "utils.h"
 #include "cell.h"
 #include "grid.h"
@@ -36,13 +38,21 @@ public:
         normal.normalize();
     }
     
-    bool is_equal(Face& other){
+    bool is_equal(const Face& other) const {
         return  ((a==other.a) and (b==other.b) and (c==other.c)) or
                 ((b==other.a) and (c==other.b) and (a==other.c)) or
                 ((c==other.a) and (a==other.b) and (b==other.c)) or
                 ((a==other.a) and (c==other.b) and (b==other.c)) or
                 ((b==other.a) and (a==other.b) and (c==other.c)) or
                 ((c==other.a) and (b==other.b) and (a==other.c));
+    }
+    
+    bool operator< (const Face & other) const {
+        if (is_equal(other)){
+            return true;
+        } else {
+            return area*10000.0 + (normal.x+normal.y) < other.area*100000.0 + (other.normal.x+other.normal.y);
+        }
     }
 };
 
@@ -67,11 +77,12 @@ public:
     void point_list(void);
     void reset(void);
     void update_faces(void);
-    std::vector<Face> faces;
     void face_helper(void);
     void add_food(void);
     void set_rd_values(float _feed, float _kill, float _ra, float _rb);
     Cell* farthest;
+    
+    std::set<Face> face_set;
     
 private:
     void init_springs(float);
